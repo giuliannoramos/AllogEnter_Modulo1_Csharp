@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Univali.Api.Entities;
 
 namespace Univali.Api.Controller;
 
@@ -6,20 +7,18 @@ namespace Univali.Api.Controller;
 [Route("api/customers")]
 public class CustomersController : ControllerBase
 {
-    public JsonResult GetCustomers()
+    public ActionResult<IEnumerable<Customer>> GetCustomers()
     {
-        return new JsonResult
+        var result = 
         (
-            new List<object>
+            new List<Customer>
             {
-                new
-                {
+                new Customer{
                     Id = 1,
-                    Name = "Linus",
+                    Name = "Linus", 
                     Cpf = "123456789"
                 },
-                new
-                {
+                new Customer{
                     Id = 2,
                     Name = "Bill",
                     Cpf = "987654321"
@@ -27,5 +26,7 @@ public class CustomersController : ControllerBase
                 
             }
         );
+        
+        return Ok(result);
     }
 }
