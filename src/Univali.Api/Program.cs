@@ -1,5 +1,10 @@
 var builder = WebApplication.CreateBuilder(args);
 
+// Configurando porta para ser 5000
+builder.WebHost.ConfigureKestrel(options => {
+    options.ListenLocalhost(5000);
+});
+
 // Add services to the container.
 
 builder.Services.AddControllers();
