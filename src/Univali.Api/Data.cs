@@ -3,16 +3,25 @@ using System.Collections.Generic;
 
 namespace Univali.Api
 {
+    /// <summary>
+    /// Classe responsável por armazenar os dados da aplicação.
+    /// </summary>
     public class Data
     {
-        // Propriedade que armazena a lista de clientes
+        /// <summary>
+        /// Propriedade que armazena a lista de clientes.
+        /// </summary>
         public List<Customer> Customers { get; set; }
 
-        // Variável estática que armazena a única instância da classe Data
+        /// <summary>
+        /// Variável estática que armazena a única instância da classe Data.
+        /// </summary>
         private static Data? _instance;
 
-        // Propriedade estática Instance que representa a única instância da classe Data
-        // acessível globalmente usando o padrão Singleton.
+        /// <summary>
+        /// Propriedade estática Instance que representa a única instância da classe Data,
+        /// acessível globalmente usando o padrão Singleton.
+        /// </summary>
         public static Data Instance
         {
             get
@@ -27,7 +36,9 @@ namespace Univali.Api
             }
         }
 
-        // Construtor privado para evitar que a classe seja instanciada externamente.
+        /// <summary>
+        /// Construtor privado para evitar que a classe seja instanciada externamente.
+        /// </summary>
         private Data()
         {
             // Inicializa a lista de Customers com alguns exemplos de clientes.
