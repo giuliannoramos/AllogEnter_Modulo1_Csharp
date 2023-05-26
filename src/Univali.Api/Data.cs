@@ -26,13 +26,13 @@ namespace Univali.Api
         {
             get
             {
-                if (_instance == null)
-                {
-                    // Se _instance for nulo, cria uma nova instância de Data e atribui à variável _instance.
-                    _instance = new Data();
-                }
+                // if (_instance == null)
+                // {
+                //     // Se _instance for nulo, cria uma nova instância de Data e atribui à variável _instance.
+                //     _instance = new Data();
+                // }
                 // Retorna a instância existente ou a nova instância criada.
-                return _instance;
+                return _instance ??= new Data();
             }
         }
 
