@@ -15,15 +15,30 @@ public class CustomersController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Customer> GetCustomer([FromRoute] int id)
+    public ActionResult<Customer> GetCustomerById(int id)
     {
+        Console.WriteLine($"id: {id}");
         var customer = Data.Instance.Customers.FirstOrDefault(c => c.Id == id);
 
         if(customer == null)
         {
             return NotFound();
-        }
-        
+        } 
+
+        return Ok(customer);        
+    }
+    
+    [HttpGet("cpf/{cpf}")] 
+    public ActionResult<Customer> GetCustomerByCpf(string cpf)
+    {
+        Console.WriteLine($"cpf: {cpf}");
+        var customer = Data.Instance.Customers.FirstOrDefault(c => c.Cpf == cpf);
+
+        if(customer == null)
+        {
+            return NotFound();
+        } 
+
         return Ok(customer);        
     }
 }
