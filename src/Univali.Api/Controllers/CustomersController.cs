@@ -14,7 +14,7 @@ public class CustomersController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id}", Name = "GetCustomerById")]
     public ActionResult<Customer> GetCustomerById(int id)
     {
         Console.WriteLine($"id: {id}");
@@ -40,6 +40,25 @@ public class CustomersController : ControllerBase
         } 
 
         return Ok(customer);        
+    }
+
+    [HttpPost]
+    public ActionResult<Customer> CreateCustomer([FromBody] Customer customer)
+    {
+        var newCustomer = new Customer
+        {
+            Id = Data.Instance.Customers.Max(c => c.Id) + 1,
+            Name = customer.Name,
+            Cpf = customer.Cpf
+        };
+
+        Data.Instance.Customers.Add(newCustomer);
+        return CreatedAtRoute
+        (
+            "GetCustomerById",
+            new {id = newCustomer.Id},
+            newCustomer
+        );
     }
 }
 
