@@ -45,22 +45,22 @@ public class CustomersController : ControllerBase
         Console.WriteLine($"id: {id}");
 
         // Procura um cliente com o ID especificado
-        var customer = Data.Instance.Customers.FirstOrDefault(c => c.Id == id);
+        var customerFromDataBase = Data.Instance.Customers.FirstOrDefault(c => c.Id == id);
 
         // Verifica se o cliente foi encontrado
-        if (customer == null)
+        if (customerFromDataBase == null)
         {
             return NotFound();
         }
 
         // Cria um DTO de cliente para retornar
-        var customerDto = new CustomerDto
-        {
-            Name = customer.Name,
-            Cpf = customer.Cpf
+        var customerToReturn = new CustomerDto
+        {            
+            Name = customerFromDataBase.Name,
+            Cpf = customerFromDataBase.Cpf
         };
 
-        return Ok(customerDto);
+        return Ok(customerToReturn);
     }
 
     /// <summary>
