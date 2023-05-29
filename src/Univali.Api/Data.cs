@@ -49,13 +49,15 @@ namespace Univali.Api
                 new Customer
                 {
                     Id = 1,
-                    Name = "Linus Torvalds",
+                    FirstName = "Linus",
+                    LastName = "Torvalds",
                     Cpf = "123456789"
                 },
                 new Customer
                 {
                     Id = 2,
-                    Name = "Bill Gates",
+                    FirstName = "Bill",
+                    LastName = "Gates",
                     Cpf = "987654321"
                 }
             };
@@ -70,7 +72,8 @@ namespace Univali.Api
             Customer customer = new Customer
             {
                 Id = GenerateId(),
-                Name = customerDto.Name,
+                FirstName = customerDto.FirstName,
+                LastName = customerDto.LastName,                
                 Cpf = customerDto.Cpf
             };
 

@@ -25,7 +25,8 @@ public class CustomersController : ControllerBase
         {
             customerRetorno.Add(new CustomerDto
             {
-                Name = customer.Name,
+                FirstName = customer.FirstName,
+                LastName = customer.LastName,
                 Cpf = customer.Cpf
             });
         }
@@ -56,7 +57,8 @@ public class CustomersController : ControllerBase
         // Cria um DTO de cliente para retornar
         var customerDto = new CustomerDto
         {
-            Name = customer.Name,
+            FirstName = customer.FirstName,
+            LastName = customer.LastName,
             Cpf = customer.Cpf
         };
 
@@ -86,7 +88,8 @@ public class CustomersController : ControllerBase
         // Cria um DTO de cliente para retornar
         var customerDto = new CustomerDto
         {
-            Name = customer.Name,
+            FirstName = customer.FirstName,
+            LastName = customer.LastName,
             Cpf = customer.Cpf
         };
 
@@ -104,7 +107,8 @@ public class CustomersController : ControllerBase
         // Cria um objeto de cliente a partir do DTO recebido
         var customer = new Customer
         {
-            Name = customerDto.Name,
+            FirstName = customerDto.FirstName,
+            LastName = customerDto.LastName,
             Cpf = customerDto.Cpf
         };
 
@@ -114,7 +118,8 @@ public class CustomersController : ControllerBase
         // Cria um DTO de cliente como resposta
         var customerDtoResponse = new CustomerDto
         {
-            Name = customer.Name,
+            FirstName = customer.FirstName,
+            LastName = customer.LastName,
             Cpf = customer.Cpf
         };
 
@@ -143,13 +148,15 @@ public class CustomersController : ControllerBase
         }
 
         // Atualiza os dados do cliente com base no objeto CustomerDto recebido
-        customer.Name = customerDto.Name;
+        customer.FirstName = customerDto.FirstName;
+        customer.LastName = customerDto.LastName;
         customer.Cpf = customerDto.Cpf;
 
         // Cria um DTO atualizado do cliente
         var updatedCustomerDto = new CustomerDto
         {
-            Name = customer.Name,
+            FirstName = customer.FirstName,
+            LastName = customer.LastName,
             Cpf = customer.Cpf
         };
 
