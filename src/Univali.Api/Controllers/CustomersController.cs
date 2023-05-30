@@ -55,7 +55,7 @@ public class CustomersController : ControllerBase
 
         // Cria um DTO de cliente para retornar
         var customerToReturn = new CustomerDto
-        {            
+        {
             Name = customerFromDataBase.Name,
             Cpf = customerFromDataBase.Cpf
         };
@@ -126,7 +126,7 @@ public class CustomersController : ControllerBase
     /// </summary>
     /// <param name="id">O identificador único do cliente.</param>
     /// <param name="customerDto">O objeto contendo as novas informações do cliente.</param>
-    /// <returns>Um código de status HTTP indicando o sucesso ou fracasso da operação e o DTO atualizado do cliente.</returns>
+    /// <returns>Um código de status HTTP indicando o sucesso ou fracasso da operação.</returns>
     [HttpPut("{id}")]
     public IActionResult UpdateCustomer(int id, CustomerDto customerDto)
     {
@@ -146,15 +146,8 @@ public class CustomersController : ControllerBase
         customer.Name = customerDto.Name;
         customer.Cpf = customerDto.Cpf;
 
-        // Cria um DTO atualizado do cliente
-        var updatedCustomerDto = new CustomerDto
-        {
-            Name = customer.Name,
-            Cpf = customer.Cpf
-        };
-
-        // Retorna um código de status HTTP 200 (OK) junto com o DTO atualizado do cliente
-        return Ok(updatedCustomerDto);
+        // Retorna um código de status HTTP 204 (No Content) para indicar sucesso na atualização sem retornar dados adicionais
+        return NoContent();
     }
 
     /// <summary>
