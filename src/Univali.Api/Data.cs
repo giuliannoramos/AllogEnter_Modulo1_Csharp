@@ -15,6 +15,11 @@ namespace Univali.Api
         public List<Customer> Customers { get; set; }
 
         /// <summary>
+        /// Propriedade que armazena a lista de enderecos.
+        /// </summary>
+        public List<Address> Addresses { get; set; }
+
+        /// <summary>
         /// Variável estática que armazena a única instância da classe Data.
         /// </summary>
         private static Data? _instance;
@@ -59,6 +64,35 @@ namespace Univali.Api
                     Cpf = "987654321"
                 }
             };
+
+            // Inicializa a lista de Address com alguns exemplos de enderecos.
+            Addresses = new List<Address>
+            {
+                new Address
+                {
+                    Id = 1,
+                    Street = "Rua Teste 1",
+                    City = "Cidade Teste 1",
+                    State = "Estado Teste 1",
+                    CustomerId = 1 // Linus Torvalds
+                },
+                new Address
+                {
+                    Id = 2,
+                    Street = "Rua Teste 2",
+                    City = "Cidade Teste 2",
+                    State = "Estado Teste 2",
+                    CustomerId = 2 // Bill Gates
+                },
+                new Address
+                {
+                    Id = 3,
+                   Street = "Rua Teste 3",
+                    City = "Cidade Teste 3",
+                    State = "Estado Teste 3",
+                    CustomerId = 2 // Bill Gates
+                }
+            };
         }
 
         /// <summary>
@@ -69,7 +103,7 @@ namespace Univali.Api
         {
             Customer customer = new Customer
             {
-                Id = GenerateId(),
+                Id = GenerateCustomerId(),
                 Name = customerDto.Name,
                 Cpf = customerDto.Cpf
             };
@@ -77,9 +111,32 @@ namespace Univali.Api
             Customers.Add(customer);
         }
 
-        private int GenerateId()
+        /// <summary>
+        /// Método para adicionar um novo endereço à lista de Addresses usando um DTO.
+        /// </summary>
+        /// <param name="addressDto">DTO do endereço a ser adicionado.</param>
+        public void AddAddress(AddressDto addressDto)
+        {
+            Address address = new Address
+            {
+                Id = GenerateAddressId(),
+                CustomerId = addressDto.CustomerId,
+                Street = addressDto.Street,
+                City = addressDto.City,
+                State = addressDto.State
+            };
+
+            Addresses.Add(address);
+        }
+
+        private int GenerateCustomerId()
         {
             return Customers.Max(c => c.Id) + 1;
+        }
+
+        private int GenerateAddressId()
+        {
+            return Addresses.Max(a => a.Id) + 1;
         }
     }
 }

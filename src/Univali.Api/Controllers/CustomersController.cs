@@ -176,4 +176,5 @@ public class CustomersController : ControllerBase
         // Retorna um código de status HTTP 204 (No Content) indicando que a remoção foi realizada com sucesso
         return NoContent();
     }
+    
 }
