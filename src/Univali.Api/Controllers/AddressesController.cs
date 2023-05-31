@@ -20,7 +20,7 @@ public class AddressesController : ControllerBase
         var addresses = Data.Instance.Addresses;
 
         // Cria uma lista para armazenar os endereços com nomes de clientes
-        var addressesWithNames = new List<CustomerAddressDto>();
+        var addressesWithNames = new List<AddressForReturnDto>();
 
         // Percorre por cada endereço na lista de endereços 
         foreach (var address in addresses)
@@ -35,7 +35,7 @@ public class AddressesController : ControllerBase
             }
 
             // Adiciona o endereço com o nome do cliente à lista
-            addressesWithNames.Add(new CustomerAddressDto
+            addressesWithNames.Add(new AddressForReturnDto
             {
                 CustomerName = customer.Name,
                 Street = address.Street,
@@ -75,7 +75,7 @@ public class AddressesController : ControllerBase
         }
 
         // Cria um objeto CustomerAddressDto com o nome do cliente e as informações do endereço atual
-        var addressWithName = new CustomerAddressDto
+        var addressWithName = new AddressForReturnDto
         {
             CustomerName = customer.Name,
             Street = address.Street,
@@ -92,10 +92,10 @@ public class AddressesController : ControllerBase
     /// <param name="addressDto">O objeto contendo as informações do novo endereço.</param>
     /// <returns>Um IActionResult indicando o resultado da criação.</returns>
     [HttpPost]
-    public IActionResult CreateAddress(AddressDto addressDto)
+    public IActionResult CreateAddress(AddressForCreationDto addressForCreationDto)
     {
         // Verifica se o cliente associado ao endereço existe
-        var customer = Data.Instance.Customers.FirstOrDefault(c => c.Id == addressDto.CustomerId);
+        var customer = Data.Instance.Customers.FirstOrDefault(c => c.Id == addressForCreationDto.CustomerId);
 
         // Retorna NotFound se o cliente não foi encontrado
         if (customer == null)
@@ -106,17 +106,17 @@ public class AddressesController : ControllerBase
         // Cria um novo objeto endereço com as informações fornecidas
         var address = new Address
         {
-            CustomerId = addressDto.CustomerId,
-            Street = addressDto.Street,
-            City = addressDto.City,
-            State = addressDto.State
+            CustomerId = addressForCreationDto.CustomerId,
+            Street = addressForCreationDto.Street,
+            City = addressForCreationDto.City,
+            State = addressForCreationDto.State
         };
 
         // Adiciona o novo endereço à lista de endereços
-        Data.Instance.AddAddress(addressDto);
+        Data.Instance.AddAddress(addressForCreationDto);
 
         // Retorna um objeto CustomerAddressDto com o nome do cliente e as informações do novo endereço
-        var customerAddressDtoResponse = new CustomerAddressDto
+        var addressForReturnDto = new AddressForReturnDto
         {
             CustomerName = customer.Name,
             Street = address.Street,
@@ -124,7 +124,7 @@ public class AddressesController : ControllerBase
             State = address.State
         };
 
-        return CreatedAtAction("GetAddressById", new { addressId = address.Id }, customerAddressDtoResponse);
+        return CreatedAtAction("GetAddressById", new { addressId = address.Id }, addressForReturnDto);
     }
 
     /// <summary>
@@ -134,7 +134,7 @@ public class AddressesController : ControllerBase
     /// <param name="updatedAddress">O objeto contendo as informações atualizadas do endereço.</param>
     /// <returns>Um IActionResult indicando o resultado da atualização.</returns>
     [HttpPut("{addressId}")]
-    public IActionResult UpdateAddressById(int addressId, AddressDto updatedAddress)
+    public IActionResult UpdateAddressById(int addressId, AddressForCreationDto addressForCreationDto)
     {
         // Obtém o endereço com base no ID fornecido
         var address = Data.Instance.Addresses.FirstOrDefault(a => a.Id == addressId);
@@ -155,12 +155,12 @@ public class AddressesController : ControllerBase
         }
 
         // Atualiza as informações do endereço com as informações fornecidas
-        address.Street = updatedAddress.Street;
-        address.City = updatedAddress.City;
-        address.State = updatedAddress.State;
+        address.Street = addressForCreationDto.Street;
+        address.City = addressForCreationDto.City;
+        address.State = addressForCreationDto.State;
 
         // Cria um objeto CustomerAddressDto com o nome do cliente e as informações do endereço atualizado
-        var addressWithName = new CustomerAddressDto
+        var addressForReturnDto = new AddressForReturnDto
         {
             CustomerName = customer.Name,
             Street = address.Street,
@@ -168,7 +168,7 @@ public class AddressesController : ControllerBase
             State = address.State
         };
 
-        return Ok(addressWithName);
+        return Ok(addressForReturnDto);
     }
 
     /// <summary>

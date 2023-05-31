@@ -92,47 +92,50 @@ namespace Univali.Api
                     State = "Estado Teste 3",
                     CustomerId = 2 // Bill Gates
                 }
+
             };
+        }
+
+        public int GenerateCustomerId()
+        {
+            return Customers.Max(c => c.Id) + 1;
         }
 
         /// <summary>
         /// Método para adicionar um novo cliente à lista de Customers usando um DTO.
         /// </summary>
         /// <param name="customerDto">DTO do cliente a ser adicionado.</param>
-        public void AddCustomer(CustomerDto customerDto)
+        public void AddCustomer(Customer customer)
         {
-            Customer customer = new Customer
+            Customer customera = new Customer
             {
-                Id = GenerateCustomerId(),
-                Name = customerDto.Name,
-                Cpf = customerDto.Cpf
+                Id = customer.Id,
+                Name = customer.Name,
+                Cpf = customer.Cpf
             };
 
-            Customers.Add(customer);
+            Customers.Add(customera);
         }
 
         /// <summary>
         /// Método para adicionar um novo endereço à lista de Addresses usando um DTO.
         /// </summary>
         /// <param name="addressDto">DTO do endereço a ser adicionado.</param>
-        public void AddAddress(AddressDto addressDto)
+        public void AddAddress(AddressForCreationDto addressForCreationDto)
         {
             Address address = new Address
             {
                 Id = GenerateAddressId(),
-                CustomerId = addressDto.CustomerId,
-                Street = addressDto.Street,
-                City = addressDto.City,
-                State = addressDto.State
+                CustomerId = addressForCreationDto.CustomerId,
+                Street = addressForCreationDto.Street,
+                City = addressForCreationDto.City,
+                State = addressForCreationDto.State
             };
 
             Addresses.Add(address);
         }
 
-        private int GenerateCustomerId()
-        {
-            return Customers.Max(c => c.Id) + 1;
-        }
+
 
         private int GenerateAddressId()
         {

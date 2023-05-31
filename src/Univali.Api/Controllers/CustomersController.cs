@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Univali.Api.Dtos;
 using Univali.Api.Entities;
@@ -13,24 +14,33 @@ public class CustomersController : ControllerBase
     /// </summary>
     /// <returns>Um código de status HTTP 200 (OK) juntamente com a lista de DTOs dos clientes encontrados.</returns>
     [HttpGet]
-    public ActionResult<IEnumerable<CustomerDto>> GetCustomers()
+    public ActionResult<IEnumerable<CustomerCreateDto>> GetCustomers()
     {
-        var result = Data.Instance.Customers;
+        // var customerFromDataBase = Data.Instance.Customers;
 
-        // Lista de clientes a serem retornados
-        List<CustomerDto> customerRetorno = new List<CustomerDto>();
+        // // Lista de clientes a serem retornados
+        // List<CustomerDto> customerRetorno = new List<CustomerDto>();
 
-        // Percorre todos os clientes e adiciona na lista de retorno
-        foreach (var customer in result)
-        {
-            customerRetorno.Add(new CustomerDto
+        // // Percorre todos os clientes e adiciona na lista de retorno
+        // foreach (var customer in customerFromDataBase)
+        // {
+        //     customerRetorno.Add(new CustomerDto
+        //     {
+        //         Name = customer.Name,
+        //         Cpf = customer.Cpf
+        //     });
+        // }
+
+        // return Ok(customerRetorno);
+
+        var customersToReturn = Data.Instance.Customers
+            .Select(customer => new CustomerReturnDto
             {
+                Id = customer.Id,
                 Name = customer.Name,
                 Cpf = customer.Cpf
             });
-        }
-
-        return Ok(customerRetorno);
+        return Ok(customersToReturn);
     }
 
     /// <summary>
@@ -40,7 +50,7 @@ public class CustomersController : ControllerBase
     /// <returns>Um código de status HTTP 200 (OK) juntamente com o DTO do cliente encontrado, 
     /// ou um código de status HTTP 404 (Not Found) se o cliente não for encontrado.</returns>
     [HttpGet("{id}", Name = "GetCustomerById")]
-    public ActionResult<CustomerDto> GetCustomerById(int id)
+    public ActionResult<CustomerCreateDto> GetCustomerById(int id)
     {
         Console.WriteLine($"id: {id}");
 
@@ -54,8 +64,9 @@ public class CustomersController : ControllerBase
         }
 
         // Cria um DTO de cliente para retornar
-        var customerToReturn = new CustomerDto
+        var customerToReturn = new CustomerReturnDto
         {
+            Id = customerFromDataBase.Id,
             Name = customerFromDataBase.Name,
             Cpf = customerFromDataBase.Cpf
         };
@@ -70,27 +81,27 @@ public class CustomersController : ControllerBase
     /// <returns>Um código de status HTTP 200 (OK) juntamente com o DTO do cliente encontrado, ou um código 
     /// de status HTTP 404 (Not Found) caso o cliente não seja encontrado.</returns>
     [HttpGet("cpf/{cpf}")]
-    public ActionResult<CustomerDto> GetCustomerByCpf(string cpf)
+    public ActionResult<CustomerCreateDto> GetCustomerByCpf(string cpf)
     {
         Console.WriteLine($"cpf: {cpf}");
 
         // Procura um cliente com o CPF especificado
-        var customer = Data.Instance.Customers.FirstOrDefault(c => c.Cpf == cpf);
+        var customerFromDataBase = Data.Instance.Customers.FirstOrDefault(c => c.Cpf == cpf);
 
         // Verifica se o cliente foi encontrado
-        if (customer == null)
+        if (customerFromDataBase == null)
         {
             return NotFound();
         }
 
         // Cria um DTO de cliente para retornar
-        var customerDto = new CustomerDto
+        var customerToReturn = new CustomerReturnDto
         {
-            Name = customer.Name,
-            Cpf = customer.Cpf
+            Name = customerFromDataBase.Name,
+            Cpf = customerFromDataBase.Cpf
         };
 
-        return Ok(customerDto);
+        return Ok(customerToReturn);
     }
 
     /// <summary>
@@ -99,26 +110,28 @@ public class CustomersController : ControllerBase
     /// <param name="customerDto">O objeto contendo as informações do novo cliente.</param>
     /// <returns>Um código de status HTTP 201 (Created) juntamente com o DTO do cliente criado.</returns>
     [HttpPost]
-    public IActionResult CreateCustomer(CustomerDto customerDto)
+    public IActionResult CreateCustomer(CustomerCreateDto customerReturnDto)
     {
         // Cria um objeto de cliente a partir do DTO recebido
         var customer = new Customer
         {
-            Name = customerDto.Name,
-            Cpf = customerDto.Cpf
+            Id = Data.Instance.GenerateCustomerId(),
+            Name = customerReturnDto.Name,
+            Cpf = customerReturnDto.Cpf
         };
 
         // Adiciona o cliente à instância de dados
-        Data.Instance.AddCustomer(customerDto);
+        Data.Instance.AddCustomer(customer);
 
         // Cria um DTO de cliente como resposta
-        var customerDtoResponse = new CustomerDto
+        var customerToReturn = new CustomerReturnDto
         {
+            Id = customer.Id,
             Name = customer.Name,
             Cpf = customer.Cpf
         };
 
-        return CreatedAtAction("GetCustomerById", new { id = customer.Id }, customerDtoResponse);
+        return CreatedAtAction("GetCustomerById", new { id = customerToReturn.Id }, customerToReturn);
     }
 
     /// <summary>
@@ -128,23 +141,23 @@ public class CustomersController : ControllerBase
     /// <param name="customerDto">O objeto contendo as novas informações do cliente.</param>
     /// <returns>Um código de status HTTP indicando o sucesso ou fracasso da operação.</returns>
     [HttpPut("{id}")]
-    public IActionResult UpdateCustomer(int id, CustomerDto customerDto)
+    public IActionResult UpdateCustomer(int id, CustomerCreateDto customerCreateDto)
     {
         Console.WriteLine($"id: {id}");
 
         // Procura o cliente com o ID fornecido na lista "Customers"
-        var customer = Data.Instance.Customers.FirstOrDefault(c => c.Id == id);
+        var customerFromDataBase = Data.Instance.Customers.FirstOrDefault(c => c.Id == id);
 
         // Verifica se o cliente foi encontrado
-        if (customer == null)
+        if (customerFromDataBase == null)
         {
             // Retorna um código de status HTTP 404 (Not Found) indicando que o cliente não foi encontrado
             return NotFound();
         }
 
         // Atualiza os dados do cliente com base no objeto CustomerDto recebido
-        customer.Name = customerDto.Name;
-        customer.Cpf = customerDto.Cpf;
+        customerFromDataBase.Name = customerCreateDto.Name;
+        customerFromDataBase.Cpf = customerCreateDto.Cpf;
 
         // Retorna um código de status HTTP 204 (No Content) para indicar sucesso na atualização sem retornar dados adicionais
         return NoContent();
@@ -161,20 +174,45 @@ public class CustomersController : ControllerBase
         Console.WriteLine($"id: {id}");
 
         // Procura o cliente com o ID fornecido na lista "Customers"
-        var customer = Data.Instance.Customers.FirstOrDefault(c => c.Id == id);
+        var customerFromDataBase = Data.Instance.Customers.FirstOrDefault(c => c.Id == id);
 
         // Verifica se o cliente foi encontrado
-        if (customer == null)
+        if (customerFromDataBase == null)
         {
             // Retorna um código de status HTTP 404 (Not Found) indicando que o cliente não foi encontrado
             return NotFound();
         }
 
         // Remove o cliente da lista "Customers"
-        Data.Instance.Customers.Remove(customer);
+        Data.Instance.Customers.Remove(customerFromDataBase);
 
         // Retorna um código de status HTTP 204 (No Content) indicando que a remoção foi realizada com sucesso
         return NoContent();
     }
-    
+
+    [HttpPatch("{id}")]
+    public ActionResult PartiallyUpdateCustomer(
+
+        [FromBody] JsonPatchDocument<CustomerCreateDto> patchDocument,
+        [FromRoute] int id)
+        {
+            var customerFromDataBase = Data.Instance.Customers
+                .FirstOrDefault(customer => customer.Id == id);
+
+            if(customerFromDataBase == null) return NotFound();
+            
+            var customerToPatch = new CustomerCreateDto
+            {
+                Name = customerFromDataBase.Name,
+                Cpf = customerFromDataBase.Cpf
+            };
+
+            patchDocument.ApplyTo(customerToPatch);
+
+            customerFromDataBase.Name = customerToPatch.Name;
+            customerFromDataBase.Cpf = customerToPatch.Cpf;
+
+            return NoContent();
+        }
+
 }
