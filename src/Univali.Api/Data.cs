@@ -101,45 +101,43 @@ namespace Univali.Api
             return Customers.Max(c => c.Id) + 1;
         }
 
+        public int GenerateAddressId()
+        {
+            return Addresses.Max(a => a.Id) + 1;
+        }
+
         /// <summary>
         /// Método para adicionar um novo cliente à lista de Customers usando um DTO.
         /// </summary>
         /// <param name="customerDto">DTO do cliente a ser adicionado.</param>
         public void AddCustomer(Customer customer)
         {
-            Customer customera = new Customer
+            Customer customerDto = new Customer
             {
                 Id = customer.Id,
                 Name = customer.Name,
                 Cpf = customer.Cpf
             };
 
-            Customers.Add(customera);
+            Customers.Add(customerDto);
         }
 
         /// <summary>
         /// Método para adicionar um novo endereço à lista de Addresses usando um DTO.
         /// </summary>
         /// <param name="addressDto">DTO do endereço a ser adicionado.</param>
-        public void AddAddress(AddressForCreationDto addressForCreationDto)
+        public void AddAddress(Address address)
         {
-            Address address = new Address
+            Address addressDto = new Address
             {
-                Id = GenerateAddressId(),
-                CustomerId = addressForCreationDto.CustomerId,
-                Street = addressForCreationDto.Street,
-                City = addressForCreationDto.City,
-                State = addressForCreationDto.State
+                Id = address.Id,
+                CustomerId = address.CustomerId,
+                Street = address.Street,
+                City = address.City,
+                State = address.State
             };
 
-            Addresses.Add(address);
-        }
-
-
-
-        private int GenerateAddressId()
-        {
-            return Addresses.Max(a => a.Id) + 1;
-        }
+            Addresses.Add(addressDto);
+        }        
     }
 }

@@ -101,3 +101,7 @@ C:\Users\6444520\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debu
 C:\Users\6444520\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debug\net7.0\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
 C:\Users\6444520\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debug\net7.0\Newtonsoft.Json.dll
 C:\Users\6444520\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debug\net7.0\Newtonsoft.Json.Bson.dll
+C:\Users\giule\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debug\net7.0\Microsoft.AspNetCore.JsonPatch.dll
+C:\Users\giule\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debug\net7.0\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
+C:\Users\giule\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debug\net7.0\Newtonsoft.Json.dll
+C:\Users\giule\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debug\net7.0\Newtonsoft.Json.Bson.dll

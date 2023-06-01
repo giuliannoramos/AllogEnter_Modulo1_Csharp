@@ -1,6 +1,6 @@
 namespace Univali.Api.Dtos
 {
-    public class AddressForCreationDto
+    public class AddressCreateDto
     {
         public int CustomerId { get; set; }
         public string Street { get; set; } = string.Empty;

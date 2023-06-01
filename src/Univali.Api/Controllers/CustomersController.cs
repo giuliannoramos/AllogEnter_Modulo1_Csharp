@@ -43,6 +43,7 @@ public class CustomersController : ControllerBase
         return Ok(customersToReturn);
     }
 
+
     /// <summary>
     /// Obtém um cliente da lista "Customers" no Singleton com base no ID fornecido.
     /// </summary>
@@ -74,6 +75,7 @@ public class CustomersController : ControllerBase
         return Ok(customerToReturn);
     }
 
+
     /// <summary>
     /// Obtém um cliente da lista "Customers" do Singleton com base no CPF fornecido.
     /// </summary>
@@ -97,12 +99,14 @@ public class CustomersController : ControllerBase
         // Cria um DTO de cliente para retornar
         var customerToReturn = new CustomerReturnDto
         {
+            Id = customerFromDataBase.Id,
             Name = customerFromDataBase.Name,
             Cpf = customerFromDataBase.Cpf
         };
 
         return Ok(customerToReturn);
     }
+
 
     /// <summary>
     /// Cria um novo cliente na lista "Customers" do Singleton com base nos dados fornecidos.
@@ -134,6 +138,7 @@ public class CustomersController : ControllerBase
         return CreatedAtAction("GetCustomerById", new { id = customerToReturn.Id }, customerToReturn);
     }
 
+
     /// <summary>
     /// Atualiza as informações de um cliente na lista "Customers" do Singleton.
     /// </summary>
@@ -163,6 +168,7 @@ public class CustomersController : ControllerBase
         return NoContent();
     }
 
+
     /// <summary>
     /// Remove um cliente da lista "Customers" do Singleton com base no seu id.
     /// </summary>
@@ -190,29 +196,42 @@ public class CustomersController : ControllerBase
         return NoContent();
     }
 
+
+    /// <summary>
+    /// Método para atualizar parcialmente um cliente.
+    /// </summary>
+    /// <param name="patchDocument">Documento JSON com as alterações a serem aplicadas no cliente.</param>
+    /// <param name="id">O ID do cliente a ser atualizado.</param>
+    /// <returns>Um objeto ActionResult representando o resultado da atualização parcial.</returns>
     [HttpPatch("{id}")]
     public ActionResult PartiallyUpdateCustomer(
+    [FromBody] JsonPatchDocument<CustomerCreateDto> patchDocument,
+    [FromRoute] int id)
+    {
+        // Obter o cliente do banco de dados com base no ID fornecido.
+        var customerFromDataBase = Data.Instance.Customers
+            .FirstOrDefault(customer => customer.Id == id);
 
-        [FromBody] JsonPatchDocument<CustomerCreateDto> patchDocument,
-        [FromRoute] int id)
+        // Verificar se o cliente foi encontrado.
+        if (customerFromDataBase == null)
+            return NotFound();
+
+        // Criar um objeto CustomerCreateDto com as propriedades do cliente a serem atualizadas.
+        var customerToPatch = new CustomerCreateDto
         {
-            var customerFromDataBase = Data.Instance.Customers
-                .FirstOrDefault(customer => customer.Id == id);
+            Name = customerFromDataBase.Name,
+            Cpf = customerFromDataBase.Cpf
+        };
 
-            if(customerFromDataBase == null) return NotFound();
-            
-            var customerToPatch = new CustomerCreateDto
-            {
-                Name = customerFromDataBase.Name,
-                Cpf = customerFromDataBase.Cpf
-            };
+        // Aplicar as alterações do patchDocument no customerToPatch.
+        patchDocument.ApplyTo(customerToPatch);
 
-            patchDocument.ApplyTo(customerToPatch);
+        // Atualizar as propriedades do cliente no banco de dados com base nas alterações aplicadas.
+        customerFromDataBase.Name = customerToPatch.Name;
+        customerFromDataBase.Cpf = customerToPatch.Cpf;
 
-            customerFromDataBase.Name = customerToPatch.Name;
-            customerFromDataBase.Cpf = customerToPatch.Cpf;
-
-            return NoContent();
-        }
+        // Retornar um resultado sem conteúdo para indicar que a atualização parcial foi bem-sucedida.
+        return NoContent();
+    }
 
 }
