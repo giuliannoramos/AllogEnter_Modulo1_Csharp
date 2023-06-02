@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Univali.Api.Dtos;
 using Univali.Api.Entities;
 
@@ -26,7 +27,8 @@ public class CustomersController : ControllerBase
         // {
         //     customerRetorno.Add(new CustomerDto
         //     {
-        //         Name = customer.Name,
+        //         Id = customer.Id,
+        //         Name = customer.Name, 
         //         Cpf = customer.Cpf
         //     });
         // }
@@ -116,6 +118,20 @@ public class CustomersController : ControllerBase
     [HttpPost]
     public IActionResult CreateCustomer(CustomerCreateDto customerReturnDto)
     {
+        //retorno erro
+        if (!ModelState.IsValid)
+        {
+            Response.ContentType = "application/problem+json";
+
+            var problemDetailsFactory = HttpContext.RequestServices.GetRequiredService<ProblemDetailsFactory>();
+
+            var validationProblemDetails = problemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState);
+
+            validationProblemDetails.Status = StatusCodes.Status422UnprocessableEntity;
+
+            return UnprocessableEntity(validationProblemDetails);
+        }
+
         // Cria um objeto de cliente a partir do DTO recebido
         var customer = new Customer
         {
@@ -202,7 +218,7 @@ public class CustomersController : ControllerBase
     /// </summary>
     /// <param name="patchDocument">Documento JSON com as alterações a serem aplicadas no cliente.</param>
     /// <param name="id">O ID do cliente a ser atualizado.</param>
-    /// <returns>Um objeto ActionResult representando o resultado da atualização parcial.</returns>
+    /// <returns>Um código de status HTTP indicando o sucesso ou fracasso da operação.</returns>
     [HttpPatch("{id}")]
     public ActionResult PartiallyUpdateCustomer(
     [FromBody] JsonPatchDocument<CustomerCreateDto> patchDocument,

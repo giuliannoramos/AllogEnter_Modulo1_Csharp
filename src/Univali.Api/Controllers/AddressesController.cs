@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Univali.Api.Dtos;
 using Univali.Api.Entities;
@@ -232,6 +233,45 @@ public class AddressesController : ControllerBase
         // Remove o endereço da lista de endereços
         Data.Instance.Addresses.Remove(address);
 
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Método para atualizar parcialmente um Endereço.
+    /// </summary>
+    /// <param name="patchDocument">Documento JSON com as alterações a serem aplicadas no endereço.</param>
+    /// <param name="id">O ID do endereço a ser atualizado.</param>
+    /// <returns>Um código de status HTTP indicando o sucesso ou fracasso da operação.</returns>
+    [HttpPatch("{id}")]
+    public ActionResult PartiallyUpdateAddress(
+    [FromBody] JsonPatchDocument<AddressCreateDto> patchDocument,
+    [FromRoute] int id)
+    {
+        // Obter o cliente do banco de dados com base no ID fornecido.
+        var addressFromDataBase = Data.Instance.Addresses
+            .FirstOrDefault(address => address.Id == id);
+
+        // Verificar se o cliente foi encontrado.
+        if (addressFromDataBase == null)
+            return NotFound();
+
+        // Criar um objeto CustomerCreateDto com as propriedades do cliente a serem atualizadas.
+        var addressToPatch = new AddressCreateDto
+        {
+            Street = addressFromDataBase.Street,
+            City = addressFromDataBase.City,
+            State = addressFromDataBase.State
+        };
+
+        // Aplicar as alterações do patchDocument no customerToPatch.
+        patchDocument.ApplyTo(addressToPatch);
+
+        // Atualizar as propriedades do cliente no banco de dados com base nas alterações aplicadas.
+        addressFromDataBase.Street = addressToPatch.Street;
+        addressFromDataBase.City = addressToPatch.City;
+        addressFromDataBase.State = addressToPatch.State;
+
+        // Retornar um resultado sem conteúdo para indicar que a atualização parcial foi bem-sucedida.
         return NoContent();
     }
 
