@@ -1,6 +1,8 @@
-namespace Univali.Api.Dtos;
+using System.ComponentModel.DataAnnotations;
 
-public class CustomerReturnDto
+namespace Univali.Api.Models;
+
+public class CustomerForUpdateDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
