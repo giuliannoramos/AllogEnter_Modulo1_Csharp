@@ -25,7 +25,7 @@ public class CustomersController : ControllerBase
     {
         var customersFromDatabase = _data.Customers;
         var customersToReturn = _mapper.Map<IEnumerable<CustomerDto>>(customersFromDatabase);
-            
+
         return Ok(customersToReturn);
     }
 
@@ -120,8 +120,7 @@ public class CustomersController : ControllerBase
 
         if (customerFromDatabase == null) return NotFound();
 
-        customerFromDatabase.Name = customerForUpdateDto.Name;
-        customerFromDatabase.Cpf = customerForUpdateDto.Cpf;
+        _mapper.Map(customerForUpdateDto, customerFromDatabase);
 
         return NoContent();
     }
