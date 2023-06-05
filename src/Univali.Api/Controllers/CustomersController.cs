@@ -180,4 +180,108 @@ public class CustomersController : ControllerBase
         return Ok(customersToReturn);
     }
 
+    [HttpPost("create-with-addresses")]
+    public ActionResult<CustomerWithAddressesDto> CreateCustomerWithAddresses([FromBody] CustomerWithAddressesCreateDto customerWithAddressesCreateDto)
+    {
+        // Cria uma nova entidade de cliente
+        var customerEntity = new Customer
+        {
+            Id = Data.Instance.Customers.Max(c => c.Id) + 1,
+            Name = customerWithAddressesCreateDto.Name,
+            Cpf = customerWithAddressesCreateDto.Cpf
+        };
+
+        // Cria entidades de endereço para o cliente
+        var addressEntities = new List<Address>();
+
+        // Obtém o maior ID de todos os endereços existentes
+        var maxAddressId = Data.Instance.Customers.SelectMany(customer => customer.Addresses).Max(address => address.Id);
+
+        int newId = 1;
+
+        foreach (var address in customerWithAddressesCreateDto.Addresses)
+        {
+            var addressEntity = new Address
+            {
+                Id = maxAddressId + newId, // Define o ID adicionando o máximo existente e o contador
+                Street = address.Street,
+                City = address.City,
+            };
+            addressEntities.Add(addressEntity);
+            newId++;
+        }
+
+        // Adiciona os endereços à entidade de cliente
+        foreach (var address in addressEntities)
+        {
+            customerEntity.Addresses.Add(address);
+        }
+
+        // Adiciona o cliente à fonte de dados (Data.Instance)
+        Data.Instance.Customers.Add(customerEntity);
+
+        // Mapeia a entidade de cliente para o DTO a ser retornado
+        var customerWithAddressesToReturn = new CustomerWithAddressesDto
+        {
+            Id = customerEntity.Id,
+            Name = customerEntity.Name,
+            Cpf = customerEntity.Cpf,
+            Addresses = addressEntities.Select(address => new AddressDto
+            {
+                Id = address.Id,
+                Street = address.Street,
+                City = address.City,
+            }).ToList()
+        };
+
+        return CreatedAtAction("GetCustomersWithAddresses", new { customerId = customerWithAddressesToReturn.Id }, customerWithAddressesToReturn);
+    }
+
+    [HttpPut("update-with-addresses/{customerId}")]
+    public IActionResult UpdateCustomerWithAddresses(int customerId, [FromBody] CustomerWithAddressesCreateDto customerWithAddressesCreateDto)
+    {
+        // Verifica se o cliente existe
+        var customerFromDataBase = Data.Instance.Customers.FirstOrDefault(c => c.Id == customerId);
+
+        if (customerFromDataBase == null)
+        {
+            return NotFound();
+        }
+
+        // Atualiza os dados do cliente
+        customerFromDataBase.Name = customerWithAddressesCreateDto.Name;
+        customerFromDataBase.Cpf = customerWithAddressesCreateDto.Cpf;
+
+        // Remove todos os endereços existentes do cliente
+        customerFromDataBase.Addresses.Clear();
+
+        // Cria novas entidades de endereço para o cliente
+        var addressEntities = new List<Address>();
+
+        // Obtém o maior ID de todos os endereços existentes
+        var maxAddressId = Data.Instance.Customers.SelectMany(customer => customer.Addresses).Max(address => address.Id);
+
+        int newId = 1;
+
+        foreach (var address in customerWithAddressesCreateDto.Addresses)
+        {
+            var addressEntity = new Address
+            {
+                Id = maxAddressId + newId, // Define o ID adicionando o máximo existente e o contador
+                Street = address.Street,
+                City = address.City,
+            };
+            addressEntities.Add(addressEntity);
+            newId++;
+        }
+
+        // Adiciona os novos endereços ao cliente
+        foreach (var address in addressEntities)
+        {
+            customerFromDataBase.Addresses.Add(address);
+        }
+
+        return NoContent();
+    }
+
 }
