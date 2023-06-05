@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -11,23 +12,20 @@ namespace Univali.Api.Controllers;
 public class CustomersController : ControllerBase
 {
     private readonly Data _data;
+    private readonly IMapper _mapper;
 
-    public CustomersController(Data data)
+    public CustomersController(Data data, IMapper mapper)
     {
         _data = data ?? throw new ArgumentException(nameof(data));
+        _mapper = mapper ?? throw new ArgumentException(nameof(mapper));
     }
 
     [HttpGet]
     public ActionResult<IEnumerable<CustomerDto>> GetCustomers()
     {
-        var customersToReturn = _data.Customers
-            .Select(customer =>
-                new CustomerDto
-                {
-                    Id = customer.Id,
-                    Name = customer.Name,
-                    Cpf = customer.Cpf
-                });
+        var customersFromDatabase = _data.Customers;
+        var customersToReturn = _mapper.Map<IEnumerable<CustomerDto>>(customersFromDatabase);
+            
         return Ok(customersToReturn);
     }
 

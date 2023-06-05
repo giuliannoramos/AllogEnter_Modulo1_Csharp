@@ -9,9 +9,11 @@ builder.WebHost.ConfigureKestrel(options =>
     options.ListenLocalhost(5000);
 });
 
-builder.Services.AddSingleton<Data>();
-
 // Add services to the container.
+
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+builder.Services.AddSingleton<Data>();
 
 builder.Services.AddControllers(options =>
 {

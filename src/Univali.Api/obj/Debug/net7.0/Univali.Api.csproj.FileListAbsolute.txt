@@ -105,3 +105,5 @@ C:\Users\giule\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debug\
 C:\Users\giule\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debug\net7.0\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
 C:\Users\giule\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debug\net7.0\Newtonsoft.Json.dll
 C:\Users\giule\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debug\net7.0\Newtonsoft.Json.Bson.dll
+C:\Users\giule\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debug\net7.0\AutoMapper.dll
+C:\Users\giule\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debug\net7.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
