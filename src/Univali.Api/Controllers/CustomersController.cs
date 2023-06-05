@@ -180,7 +180,7 @@ public class CustomersController : ControllerBase
         return Ok(customersToReturn);
     }
 
-    [HttpPost("create-with-addresses")]
+    [HttpPost("with-addresses")]
     public ActionResult<CustomerWithAddressesDto> CreateCustomerWithAddresses([FromBody] CustomerWithAddressesCreateDto customerWithAddressesCreateDto)
     {
         // Cria uma nova entidade de cliente
@@ -237,7 +237,7 @@ public class CustomersController : ControllerBase
         return CreatedAtAction("GetCustomersWithAddresses", new { customerId = customerWithAddressesToReturn.Id }, customerWithAddressesToReturn);
     }
 
-    [HttpPut("update-with-addresses/{customerId}")]
+    [HttpPut("with-addresses/{customerId}")]
     public IActionResult UpdateCustomerWithAddresses(int customerId, [FromBody] CustomerWithAddressesCreateDto customerWithAddressesCreateDto)
     {
         // Verifica se o cliente existe
