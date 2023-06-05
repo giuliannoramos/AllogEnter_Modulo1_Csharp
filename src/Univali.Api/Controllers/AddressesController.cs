@@ -8,51 +8,30 @@ namespace Univali.Api.Controllers;
 [Route("api/customers/{customerId}/addresses")]
 public class AddressController : ControllerBase
 {
-    [HttpGet]
-    public ActionResult<IEnumerable<AddressDto>> GetAddresses(int customerId)
-    {
-        var customerFromDatabase = Data.Instance.Customers.FirstOrDefault(customer => customer.Id == customerId);
-
-        if (customerFromDatabase == null) return NotFound();
-
-        var addressesToReturn = new List<AddressDto>();
-
-        foreach (var address in customerFromDatabase.Addresses)
-        {
-            addressesToReturn.Add(new AddressDto
-            {
-                Id = address.Id,
-                Street = address.Street,
-                City = address.City
-            });
-        }
-
-        return Ok(addressesToReturn);
-
-    }
 
     [HttpGet("{addressId}")]
     public ActionResult<AddressDto> GetAddress(int customerId, int addressId)
     {
         // // Procurar o cliente com o ID fornecido
-        // var customer = Data.Instance.Customers.FirstOrDefault(customer => customer.Id == customerId);
+        // var customerFromDataBase = Data.Instance.Customers.FirstOrDefault(c => c.Id == customerId);
 
-        // // Verificar se o cliente foi encontrado
-        // if (customer != null)
+        // // Verificar se o cliente não foi encontrado
+        // if (customerFromDataBase == null)
         // {
-        //     // Procurar o endereço com o ID fornecido dentro do cliente encontrado
-        //     var addressToReturn = customer.Addresses.FirstOrDefault(address => address.Id == addressId);
-
-        //     // Verificar se o endereço foi encontrado
-        //     if (addressToReturn != null)
-        //     {
-        //         // Retornar o endereço encontrado com o status HTTP 200 OK
-        //         return Ok(addressToReturn);
-        //     }
+        //     return NotFound();
         // }
 
-        // // Se o cliente ou o endereço não forem encontrados, retornar o status HTTP 404 Not Found
-        // return NotFound();
+        // // Procurar o endereço com o ID fornecido dentro do cliente encontrado
+        // var addressToReturn = customerFromDataBase.Addresses.FirstOrDefault(a => a.Id == addressId);
+
+        // // Verificar se o endereço não foi encontrado
+        // if (addressToReturn == null)
+        // {
+        //     return NotFound();
+        // }
+
+        // // Retornar o endereço encontrado com o status HTTP 200 OK
+        // return Ok(addressToReturn);
 
         {
             var addressToReturn = Data.Instance
@@ -67,51 +46,57 @@ public class AddressController : ControllerBase
     public ActionResult<AddressDto> CreateAddress(int customerId, [FromBody] AddressForCreationDto addressForCreationDto)
     {
         // Procura o cliente com o ID fornecido
-        var customer = Data.Instance.Customers.FirstOrDefault(c => c.Id == customerId);
+        var customerFromDataBase = Data.Instance.Customers.FirstOrDefault(c => c.Id == customerId);
 
         // Verifica se o cliente não foi encontrado
-        if (customer == null)
+        if (customerFromDataBase == null)
+        {
             return NotFound();
+        }
+
+        // Obtém o maior ID de todos os endereços existentes
+        var maxAddressId = Data.Instance.Customers.SelectMany(customer => customer.Addresses).Max(address => address.Id);
+
+        int newId = 1; //contador
 
         // Cria uma nova entidade de endereço
         var addressEntity = new Address()
         {
-            // Gera o ID para o novo endereço
-            Id = customer.Addresses.SelectMany<Address, int>(a => new[] { a.Id }) // Combina todos os IDs de endereços existentes em uma única sequência
-                 .DefaultIfEmpty(0) // Define o valor padrão como 0 caso a sequência esteja vazia (nenhum endereço existente)                
-                 .Max() + 1, // Encontra o maior ID na sequência e adiciona 1 para gerar o próximo ID disponível
+            Id = maxAddressId + newId, // Maior Id de todos e o contador
             Street = addressForCreationDto.Street,
             City = addressForCreationDto.City
         };
 
         // Adiciona o novo endereço à lista de endereços do cliente
-        customer.Addresses.Add(addressEntity);
+        customerFromDataBase.Addresses.Add(addressEntity);
 
-        // Retorna a resposta de criação com o status 201 (Created)
-        return CreatedAtAction("GetAddress", new { customerId = customerId, addressId = addressEntity.Id }, new AddressDto
+        // Mapeia os atributos do novo endereço para o DTO de resposta
+        var addressToReturn = new AddressDto
         {
-            // Mapeia os atributos do novo endereço para o DTO de resposta
             Id = addressEntity.Id,
             Street = addressEntity.Street,
             City = addressEntity.City
-        });
+        };
+
+        return CreatedAtAction("GetAddress", new { customerId = customerId, addressId = addressToReturn.Id }, addressToReturn);
     }
 
     [HttpPut("{addressId}")]
     public ActionResult UpdateAddress(int customerId, int addressId, [FromBody] AddressForUpdateDto addressForUpdateDto)
     {
-        // Verificar se o ID do endereço fornecido no corpo da requisição corresponde ao ID fornecido como parâmetro
-        if (addressId != addressForUpdateDto.Id) return BadRequest();
+        // Verifica se o ID do endereço fornecido no corpo da requisição corresponde ao ID fornecido como parâmetro
+        if (addressId != addressForUpdateDto.Id)
+            return BadRequest();
 
         // Procura o cliente com o ID fornecido
-        var customer = Data.Instance.Customers.FirstOrDefault(c => c.Id == customerId);
+        var customerFromDataBase = Data.Instance.Customers.FirstOrDefault(c => c.Id == customerId);
 
         // Verifica se o cliente não foi encontrado
-        if (customer == null)
+        if (customerFromDataBase == null)
             return NotFound();
 
         // Procura o endereço com o ID fornecido dentro do cliente
-        var addressToUpdate = customer.Addresses.FirstOrDefault(a => a.Id == addressId);
+        var addressToUpdate = customerFromDataBase.Addresses.FirstOrDefault(a => a.Id == addressId);
 
         // Verifica se o endereço não foi encontrado
         if (addressToUpdate == null)
@@ -122,6 +107,167 @@ public class AddressController : ControllerBase
         addressToUpdate.City = addressForUpdateDto.City;
 
         // Retorna o status 204 No Content para indicar que a atualização foi bem-sucedida
+        return NoContent();
+    }
+
+    [HttpDelete("{addressId}")]
+    public ActionResult DeleteAddress(int customerId, int addressId)
+    {
+        // Procurar o cliente com o ID fornecido
+        var customerFromDataBase = Data.Instance.Customers.FirstOrDefault(c => c.Id == customerId);
+
+        // Verificar se o cliente não foi encontrado
+        if (customerFromDataBase == null)
+        {
+            return NotFound();
+        }
+
+        // Procurar o endereço com o ID fornecido dentro do cliente encontrado
+        var addressToDelete = customerFromDataBase.Addresses.FirstOrDefault(a => a.Id == addressId);
+
+        // Verificar se o endereço não foi encontrado
+        if (addressToDelete == null)
+        {
+            return NotFound();
+        }
+
+        // Remover o endereço da lista de endereços do cliente
+        customerFromDataBase.Addresses.Remove(addressToDelete);
+
+        // Retornar uma resposta HTTP 204 No Content para indicar que o endereço foi removido com sucesso
+        return NoContent();
+    }
+
+    [HttpGet]
+    public ActionResult<IEnumerable<AddressDto>> GetAddresses(int customerId)
+    {
+        // Procurar o cliente com o ID fornecido
+        var customerFromDataBase = Data.Instance.Customers.FirstOrDefault(c => c.Id == customerId);
+
+        // Verificar se o cliente não foi encontrado
+        if (customerFromDataBase == null)
+        {
+            return NotFound(); // Retorna o status HTTP 404 Not Found se o cliente não foi encontrado
+        }
+
+        var addressesToReturn = new List<AddressDto>();
+
+        // Percorrer os endereços do cliente encontrado
+        foreach (var address in customerFromDataBase.Addresses)
+        {
+            // Mapear os atributos do endereço para o formato AddressDto
+            addressesToReturn.Add(new AddressDto
+            {
+                Id = address.Id,
+                Street = address.Street,
+                City = address.City
+            });
+        }
+
+        return Ok(addressesToReturn); // Retorna a lista de endereços com o status HTTP 200 OK
+    }
+
+    [HttpPost("create-with-addresses")]
+    public ActionResult<CustomerWithAddressesDto> CreateCustomerWithAddresses([FromBody] CustomerWithAddressesCreateDto customerWithAddressesCreateDto)
+    {
+        // Cria uma nova entidade de cliente
+        var customerEntity = new Customer
+        {
+            Id = Data.Instance.Customers.Max(c => c.Id) + 1,
+            Name = customerWithAddressesCreateDto.Name,
+            Cpf = customerWithAddressesCreateDto.Cpf
+        };
+
+        // Cria entidades de endereço para o cliente
+        var addressEntities = new List<Address>();
+
+        // Obtém o maior ID de todos os endereços existentes
+        var maxAddressId = Data.Instance.Customers.SelectMany(customer => customer.Addresses).Max(address => address.Id);
+
+        int newId = 1;
+
+        foreach (var address in customerWithAddressesCreateDto.Addresses)
+        {
+            var addressEntity = new Address
+            {
+                Id = maxAddressId + newId, // Define o ID adicionando o máximo existente e o contador
+                Street = address.Street,
+                City = address.City,
+            };
+            addressEntities.Add(addressEntity);
+            newId++;
+        }
+
+        // Adiciona os endereços à entidade de cliente
+        foreach (var address in addressEntities)
+        {
+            customerEntity.Addresses.Add(address);
+        }
+
+        // Adiciona o cliente à fonte de dados (Data.Instance)
+        Data.Instance.Customers.Add(customerEntity);
+
+        // Mapeia a entidade de cliente para o DTO a ser retornado
+        var customerWithAddressesToReturn = new CustomerWithAddressesDto
+        {
+            Id = customerEntity.Id,
+            Name = customerEntity.Name,
+            Cpf = customerEntity.Cpf,
+            Addresses = addressEntities.Select(address => new AddressDto
+            {
+                Id = address.Id,
+                Street = address.Street,
+                City = address.City,
+            }).ToList()
+        };
+
+        return CreatedAtAction("GetAddresses", new { customerId = customerWithAddressesToReturn.Id }, customerWithAddressesToReturn);
+    }
+
+    [HttpPut("update-with-addresses")]
+    public IActionResult UpdateCustomerWithAddresses(int customerId, [FromBody] CustomerWithAddressesCreateDto customerWithAddressesCreateDto)
+    {
+        // Verifica se o cliente existe
+        var customerFromDataBase = Data.Instance.Customers.FirstOrDefault(c => c.Id == customerId);
+
+        if (customerFromDataBase == null)
+        {
+            return NotFound();
+        }
+
+        // Atualiza os dados do cliente
+        customerFromDataBase.Name = customerWithAddressesCreateDto.Name;
+        customerFromDataBase.Cpf = customerWithAddressesCreateDto.Cpf;
+
+        // Remove todos os endereços existentes do cliente
+        customerFromDataBase.Addresses.Clear();
+
+        // Cria novas entidades de endereço para o cliente
+        var addressEntities = new List<Address>();
+
+        // Obtém o maior ID de todos os endereços existentes
+        var maxAddressId = Data.Instance.Customers.SelectMany(customer => customer.Addresses).Max(address => address.Id);
+
+        int newId = 1;
+
+        foreach (var address in customerWithAddressesCreateDto.Addresses)
+        {
+            var addressEntity = new Address
+            {
+                Id = maxAddressId + newId, // Define o ID adicionando o máximo existente e o contador
+                Street = address.Street,
+                City = address.City,
+            };
+            addressEntities.Add(addressEntity);
+            newId++;
+        }
+
+        // Adiciona os novos endereços ao cliente
+        foreach (var address in addressEntities)
+        {
+            customerFromDataBase.Addresses.Add(address);
+        }
+
         return NoContent();
     }
 

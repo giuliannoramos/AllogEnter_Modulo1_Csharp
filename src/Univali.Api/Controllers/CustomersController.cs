@@ -41,7 +41,6 @@ public class CustomersController : ControllerBase
         return Ok(customerToReturn);
     }
 
-
     [HttpGet("cpf/{cpf}")]
     public ActionResult<CustomerDto> GetCustomerByCpf(string cpf)
     {
