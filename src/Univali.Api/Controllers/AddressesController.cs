@@ -6,14 +6,20 @@ namespace Univali.Api.Controllers;
 
 [ApiController]
 [Route("api/customers/{customerId}/addresses")]
-public class AddressController : ControllerBase
+public class AddressesController : ControllerBase
 {
+    private readonly Data _data;
+
+    public AddressesController(Data data)
+    {
+        _data = data ?? throw new ArgumentException(nameof(data));
+    }
 
     [HttpGet("{addressId}")]
     public ActionResult<AddressDto> GetAddress(int customerId, int addressId)
     {
         // // Procurar o cliente com o ID fornecido
-        // var customerFromDataBase = Data.Instance.Customers.FirstOrDefault(c => c.Id == customerId);
+        // var customerFromDataBase = _data.Customers.FirstOrDefault(c => c.Id == customerId);
 
         // // Verificar se o cliente não foi encontrado
         // if (customerFromDataBase == null)
@@ -34,7 +40,7 @@ public class AddressController : ControllerBase
         // return Ok(addressToReturn);
 
         {
-            var addressToReturn = Data.Instance
+            var addressToReturn = _data
                 .Customers.FirstOrDefault(customer => customer.Id == customerId)
                 ?.Addresses.FirstOrDefault(address => address.Id == addressId);
 
@@ -46,7 +52,7 @@ public class AddressController : ControllerBase
     public ActionResult<AddressDto> CreateAddress(int customerId, [FromBody] AddressForCreationDto addressForCreationDto)
     {
         // Procura o cliente com o ID fornecido
-        var customerFromDataBase = Data.Instance.Customers.FirstOrDefault(c => c.Id == customerId);
+        var customerFromDataBase = _data.Customers.FirstOrDefault(c => c.Id == customerId);
 
         // Verifica se o cliente não foi encontrado
         if (customerFromDataBase == null)
@@ -55,7 +61,7 @@ public class AddressController : ControllerBase
         }
 
         // Obtém o maior ID de todos os endereços existentes
-        var maxAddressId = Data.Instance.Customers.SelectMany(customer => customer.Addresses).Max(address => address.Id);
+        var maxAddressId = _data.Customers.SelectMany(customer => customer.Addresses).Max(address => address.Id);
 
         int newId = 1; //contador
 
@@ -89,7 +95,7 @@ public class AddressController : ControllerBase
             return BadRequest();
 
         // Procura o cliente com o ID fornecido
-        var customerFromDataBase = Data.Instance.Customers.FirstOrDefault(c => c.Id == customerId);
+        var customerFromDataBase = _data.Customers.FirstOrDefault(c => c.Id == customerId);
 
         // Verifica se o cliente não foi encontrado
         if (customerFromDataBase == null)
@@ -114,7 +120,7 @@ public class AddressController : ControllerBase
     public ActionResult DeleteAddress(int customerId, int addressId)
     {
         // Procurar o cliente com o ID fornecido
-        var customerFromDataBase = Data.Instance.Customers.FirstOrDefault(c => c.Id == customerId);
+        var customerFromDataBase = _data.Customers.FirstOrDefault(c => c.Id == customerId);
 
         // Verificar se o cliente não foi encontrado
         if (customerFromDataBase == null)
@@ -142,7 +148,7 @@ public class AddressController : ControllerBase
     public ActionResult<IEnumerable<AddressDto>> GetAddresses(int customerId)
     {
         // Procurar o cliente com o ID fornecido
-        var customerFromDataBase = Data.Instance.Customers.FirstOrDefault(c => c.Id == customerId);
+        var customerFromDataBase = _data.Customers.FirstOrDefault(c => c.Id == customerId);
 
         // Verificar se o cliente não foi encontrado
         if (customerFromDataBase == null)

@@ -6,26 +6,8 @@ namespace Univali.Api
     public class Data
     {
         public List<Customer> Customers { get; set; }
-        // Propriedade privada que contém a única referência a instância
-        private static Data? _instance;
 
-        // Método público e estático que fornece acesso a propriedade que possui a instância
-        // Neste caso é uma propriedade porque o método get permite executar uma instrução
-        public static Data Instance
-        {
-            get
-            {
-                /*
-                Assume Lazy instanciação como padrão.
-                Não é instânciada ao executar a aplicação, é instânciada
-                quando necessária e será somente uma única vez.
-                 */
-
-                return _instance ??= new Data();
-            }
-        }
-        // Construtor único, privado e sem parâmetro
-        private Data()
+        public Data()
         {
             Customers = new List<Customer>
             {
