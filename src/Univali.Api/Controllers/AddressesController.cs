@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Univali.Api.Entities;
 using Univali.Api.Models;
@@ -8,11 +9,18 @@ namespace Univali.Api.Controllers;
 [Route("api/customers/{customerId}/addresses")]
 public class AddressesController : ControllerBase
 {
+    // Injeção de Dependência: Os parâmetros 'data' e 'mapper' são fornecidos externamente para o construtor da classe CustomersController.
+    // Isso permite que as dependências necessárias sejam injetadas na classe em vez de a própria classe criar essas dependências.
     private readonly Data _data;
+    private readonly IMapper _mapper;
 
-    public AddressesController(Data data)
+    public AddressesController(Data data, IMapper mapper)
     {
-        _data = data ?? throw new ArgumentException(nameof(data));
+        // Armazena uma referência aos dados fornecidos externamente, como um banco de dados.
+        _data = data ?? throw new ArgumentNullException(nameof(data));
+
+        // Armazena uma referência ao objeto responsável por mapear entre diferentes tipos de objetos, como mapear Customer para CustomerDto
+        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
     [HttpGet("{addressId}")]
@@ -63,26 +71,15 @@ public class AddressesController : ControllerBase
         // Obtém o maior ID de todos os endereços existentes
         var maxAddressId = _data.Customers.SelectMany(customer => customer.Addresses).Max(address => address.Id);
 
-        int newId = 1; //contador
-
         // Cria uma nova entidade de endereço
-        var addressEntity = new Address()
-        {
-            Id = maxAddressId + newId, // Maior Id de todos e o contador
-            Street = addressForCreationDto.Street,
-            City = addressForCreationDto.City
-        };
+        var addressEntity = _mapper.Map<Address>(addressForCreationDto);
+        addressEntity.Id = maxAddressId + 1;
 
         // Adiciona o novo endereço à lista de endereços do cliente
         customerFromDataBase.Addresses.Add(addressEntity);
 
         // Mapeia os atributos do novo endereço para o DTO de resposta
-        var addressToReturn = new AddressDto
-        {
-            Id = addressEntity.Id,
-            Street = addressEntity.Street,
-            City = addressEntity.City
-        };
+        var addressToReturn = _mapper.Map<AddressDto>(addressEntity);
 
         return CreatedAtAction("GetAddress", new { customerId = customerId, addressId = addressToReturn.Id }, addressToReturn);
     }
@@ -109,8 +106,7 @@ public class AddressesController : ControllerBase
             return NotFound();
 
         // Atualiza os atributos do endereço com base nos dados fornecidos
-        addressToUpdate.Street = addressForUpdateDto.Street;
-        addressToUpdate.City = addressForUpdateDto.City;
+        _mapper.Map(addressForUpdateDto, addressToUpdate);
 
         // Retorna o status 204 No Content para indicar que a atualização foi bem-sucedida
         return NoContent();
@@ -156,19 +152,8 @@ public class AddressesController : ControllerBase
             return NotFound(); // Retorna o status HTTP 404 Not Found se o cliente não foi encontrado
         }
 
-        var addressesToReturn = new List<AddressDto>();
-
-        // Percorrer os endereços do cliente encontrado
-        foreach (var address in customerFromDataBase.Addresses)
-        {
-            // Mapear os atributos do endereço para o formato AddressDto
-            addressesToReturn.Add(new AddressDto
-            {
-                Id = address.Id,
-                Street = address.Street,
-                City = address.City
-            });
-        }
+        // Mapear os endereços do cliente para o formato AddressDto
+        var addressesToReturn = _mapper.Map<List<AddressDto>>(customerFromDataBase.Addresses);
 
         return Ok(addressesToReturn); // Retorna a lista de endereços com o status HTTP 200 OK
     }
