@@ -19,7 +19,7 @@ public class AddressesController : ControllerBase
         // Armazena uma referência aos dados fornecidos externamente, como um banco de dados.
         _data = data ?? throw new ArgumentNullException(nameof(data));
 
-        // Armazena uma referência ao objeto responsável por mapear entre diferentes tipos de objetos, como mapear Customer para CustomerDto
+        // Armazena uma referência ao objeto responsável por mapear diferentes tipos de objetos, como mapear um Customer para CustomerDto
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
