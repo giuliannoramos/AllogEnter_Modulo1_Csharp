@@ -2,6 +2,8 @@ using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Options;
 using Univali.Api.Entities;
 using Univali.Api.Models;
 
@@ -9,7 +11,7 @@ namespace Univali.Api.Controllers;
 
 [ApiController]
 [Route("api/customers")]
-public class CustomersController : ControllerBase
+public class CustomersController : MainController
 {
     // Injeção de Dependência: Os parâmetros 'data' e 'mapper' são fornecidos externamente para o construtor da classe CustomersController.
     // Isso permite que as dependências necessárias sejam injetadas na classe em vez de a própria classe criar essas dependências.
@@ -79,23 +81,6 @@ public class CustomersController : ControllerBase
     [HttpPost]
     public ActionResult<CustomerDto> CreateCustomer(CustomerForCreationDto customerForCreationDto)
     {
-        // Verifica se o modelo recebido é válido
-        if (!ModelState.IsValid)
-        {
-            Response.ContentType = "application/problem+json";
-
-            // Obtém a fábrica de detalhes de problema de validação
-            var problemDetailsFactory = HttpContext.RequestServices.GetRequiredService<ProblemDetailsFactory>();
-
-            // Cria um objeto de detalhes de problema de validação
-            var validationProblemDetails = problemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState);
-
-            // Atribui o status code 422 no corpo do response
-            validationProblemDetails.Status = StatusCodes.Status422UnprocessableEntity;
-
-            return UnprocessableEntity(validationProblemDetails);
-        }
-
         // Mapeia o customerForCreationDto para um objeto Customer usando o AutoMapper
         var customerEntity = _mapper.Map<Customer>(customerForCreationDto);
 
@@ -160,7 +145,12 @@ public class CustomersController : ControllerBase
         var customerToPatch = _mapper.Map<CustomerForPatchDto>(customerFromDatabase);
 
         // Aplica as alterações parciais do JsonPatchDocument ao objeto customerToPatch
-        patchDocument.ApplyTo(customerToPatch);
+        patchDocument.ApplyTo(customerToPatch, ModelState);
+
+        if (!TryValidateModel(customerToPatch))
+        {
+            return ValidationProblem(ModelState);
+        }
 
         // Mapeia as alterações aplicadas de volta para o objeto customerFromDatabase
         _mapper.Map(customerToPatch, customerFromDatabase);
@@ -264,5 +254,6 @@ public class CustomersController : ControllerBase
 
         return NoContent();
     }
+
 
 }
