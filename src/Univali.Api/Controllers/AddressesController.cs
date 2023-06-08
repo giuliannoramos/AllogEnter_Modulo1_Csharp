@@ -54,6 +54,11 @@ public class AddressesController : ControllerBase
 
             return addressToReturn != null ? Ok(addressToReturn) : NotFound();
         }
+        // {
+        //     var customerExist = await _context.Customers.Any(customer => customer.Id == customerId);
+        //     .include para retornar endereço
+        //     
+        // }
     }
 
     [HttpPost]

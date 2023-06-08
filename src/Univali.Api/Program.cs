@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Univali.Api;
 using Univali.Api.Configuration;
+using Univali.Api.DbContexts;
+using Univali.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +19,11 @@ builder.WebHost.ConfigureKestrel(options =>
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddSingleton<Data>();
+
+builder.Services.AddDbContext<CustomerContext>(options =>
+{
+    options.UseNpgsql("Host=localhost;Database=Univali;Username=postgres;Password=1973");
+});
 
 builder.Services.AddControllers(options =>
 {
@@ -79,6 +87,8 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+await app.ResetDatabaseAsync();
 
 app.Run();
 

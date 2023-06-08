@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Univali.Api.DbContexts;
 using Univali.Api.Entities;
 using Univali.Api.Models;
 
@@ -17,21 +19,24 @@ public class CustomersController : MainController
     // Isso permite que as dependências necessárias sejam injetadas na classe em vez de a própria classe criar essas dependências.
     private readonly Data _data;
     private readonly IMapper _mapper;
+    private readonly CustomerContext _context;
 
-    public CustomersController(Data data, IMapper mapper)
+    public CustomersController(Data data, IMapper mapper, CustomerContext context)
     {
         // Armazena uma referência aos dados fornecidos externamente, como um banco de dados.
         _data = data ?? throw new ArgumentNullException(nameof(data));
 
         // Armazena uma referência ao objeto responsável por mapear entre diferentes tipos de objetos, como mapear Customer para CustomerDto
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+
+        _context = context ?? throw new ArgumentNullException(nameof(_context));
     }
 
     [HttpGet]
     public ActionResult<IEnumerable<CustomerDto>> GetCustomers()
     {
         // Obtém os clientes do banco de dados
-        var customersFromDatabase = _data.Customers;
+        var customersFromDatabase = _context.Customers.OrderBy(c => c.Name).ToList();
 
         // Mapeia os clientes para o tipo CustomerDto usando o AutoMapper
         var customersToReturn = _mapper.Map<IEnumerable<CustomerDto>>(customersFromDatabase);
@@ -44,7 +49,7 @@ public class CustomersController : MainController
     public ActionResult<CustomerDto> GetCustomerById(int id)
     {
         // Encontra o cliente no banco de dados com base no ID fornecido
-        var customerFromDatabase = _data.Customers.FirstOrDefault(c => c.Id == id);
+        var customerFromDatabase = _context.Customers.FirstOrDefault(c => c.Id == id);
 
         // Verifica se o cliente existe
         if (customerFromDatabase == null)
@@ -63,7 +68,7 @@ public class CustomersController : MainController
     public ActionResult<CustomerDto> GetCustomerByCpf(string cpf)
     {
         // Encontra o cliente no banco de dados com base no CPF fornecido
-        var customerFromDatabase = _data.Customers.FirstOrDefault(c => c.Cpf == cpf);
+        var customerFromDatabase = _context.Customers.FirstOrDefault(c => c.Cpf == cpf);
 
         // Verifica se o cliente existe
         if (customerFromDatabase == null)
@@ -84,11 +89,9 @@ public class CustomersController : MainController
         // Mapeia o customerForCreationDto para um objeto Customer usando o AutoMapper
         var customerEntity = _mapper.Map<Customer>(customerForCreationDto);
 
-        // Define o ID do cliente como o próximo ID disponível
-        customerEntity.Id = _data.Customers.Max(c => c.Id) + 1;
-
         // Adiciona o cliente à coleção Customers no contexto do banco de dados
-        _data.Customers.Add(customerEntity);
+        _context.Customers.Add(customerEntity);
+        _context.SaveChanges();
 
         // Mapeia o customerEntity para o tipo CustomerDto usando o AutoMapper
         var customerToReturn = _mapper.Map<CustomerDto>(customerEntity);
@@ -104,13 +107,16 @@ public class CustomersController : MainController
         if (id != customerForUpdateDto.Id) return BadRequest();
 
         // Encontra o cliente no banco de dados com base no ID fornecido
-        var customerFromDatabase = _data.Customers.FirstOrDefault(customer => customer.Id == id);
+        var customerFromDatabase = _context.Customers
+            .FirstOrDefault(customer => customer.Id == id);
 
         // Verifica se o cliente existe
         if (customerFromDatabase == null) return NotFound();
 
         // Mapeia as propriedades do customerForUpdateDto para o customerFromDatabase usando o AutoMapper
         _mapper.Map(customerForUpdateDto, customerFromDatabase);
+
+        _context.SaveChanges();
 
         // Retorna uma resposta "Sem conteúdo" (204) para indicar que o cliente foi atualizado com sucesso
         return NoContent();
@@ -120,13 +126,17 @@ public class CustomersController : MainController
     public ActionResult DeleteCustomer(int id)
     {
         // Encontra o cliente no banco de dados com base no ID fornecido
-        var customerFromDatabase = _data.Customers.FirstOrDefault(customer => customer.Id == id);
+        var customerFromDatabase = _context.Customers.FirstOrDefault(c => c.Id == id);
 
         // Verifica se o cliente existe
-        if (customerFromDatabase == null) return NotFound();
+        if (customerFromDatabase == null)
+        {
+            return NotFound();
+        }
 
         // Remove o cliente da coleção Customers no contexto do banco de dados
-        _data.Customers.Remove(customerFromDatabase);
+        _context.Customers.Remove(customerFromDatabase);
+        _context.SaveChanges();
 
         // Retorna uma resposta "Sem conteúdo" (204) para indicar que o cliente foi removido com sucesso
         return NoContent();
@@ -136,10 +146,13 @@ public class CustomersController : MainController
     public ActionResult PartiallyUpdateCustomer([FromBody] JsonPatchDocument<CustomerForPatchDto> patchDocument, [FromRoute] int id)
     {
         // Encontra o cliente no banco de dados com base no ID fornecido
-        var customerFromDatabase = _data.Customers.FirstOrDefault(customer => customer.Id == id);
+        var customerFromDatabase = _context.Customers.FirstOrDefault(c => c.Id == id);
 
         // Verifica se o cliente existe
-        if (customerFromDatabase == null) return NotFound();
+        if (customerFromDatabase == null)
+        {
+            return NotFound();
+        }
 
         // Mapeia o cliente do banco de dados para o tipo CustomerForPatchDto usando o AutoMapper
         var customerToPatch = _mapper.Map<CustomerForPatchDto>(customerFromDatabase);
@@ -155,6 +168,8 @@ public class CustomersController : MainController
         // Mapeia as alterações aplicadas de volta para o objeto customerFromDatabase
         _mapper.Map(customerToPatch, customerFromDatabase);
 
+        _context.SaveChanges();
+
         // Retorna um resultado de "Sem conteúdo" (204) para indicar que a atualização parcial foi concluída com sucesso
         return NoContent();
     }
@@ -162,8 +177,8 @@ public class CustomersController : MainController
     [HttpGet("with-address")]
     public ActionResult<IEnumerable<CustomerWithAddressesDto>> GetCustomersWithAddresses()
     {
-        // Obtém os clientes do banco de dados
-        var customersFromDatabase = _data.Customers;
+        // Obtém os clientes do banco de dados com os endereços associados
+        var customersFromDatabase = _context.Customers.Include(c => c.Addresses);
 
         // Mapeia a lista de clientes para a lista de CustomerWithAddressesDto
         var customersToReturn = _mapper.Map<IEnumerable<CustomerWithAddressesDto>>(customersFromDatabase);
@@ -178,82 +193,44 @@ public class CustomersController : MainController
         // Mapeia o DTO de criação para a entidade de cliente
         var customerEntity = _mapper.Map<Customer>(customerWithAddressesCreateDto);
 
-        // Obtém o maior ID de todos os clientes existentes
-        var maxCustomerId = _data.Customers.Max(c => c.Id);
-
-        // Define o novo ID para o cliente
-        customerEntity.Id = maxCustomerId + 1;
-
-        // Cria uma lista para armazenar os endereços mapeados
-        var addressEntities = new List<Address>();
-
-        // Obtém o maior ID de todos os endereços existentes
-        var maxAddressId = _data.Customers.SelectMany(customer => customer.Addresses).Max(address => address.Id);
-
-        foreach (var addressDto in customerWithAddressesCreateDto.Addresses)
-        {
-            // Mapeia cada DTO de endereço para a entidade de endereço
-            var addressEntity = _mapper.Map<Address>(addressDto);
-
-            // Incrementa o ID do endereço
-            addressEntity.Id = ++maxAddressId;
-
-            // Adiciona o endereço mapeado à lista
-            addressEntities.Add(addressEntity);
-        }
-
-        // Adiciona a lista de endereços à entidade de cliente
-        customerEntity.Addresses = addressEntities;
-
-        // Adiciona o cliente ao banco
-        _data.Customers.Add(customerEntity);
+        // Adiciona o cliente à coleção Customers no contexto do banco de dados
+        _context.Customers.Add(customerEntity);
+        _context.SaveChanges();
 
         // Mapeia a entidade de cliente para o DTO a ser retornado
         var customerWithAddressesToReturn = _mapper.Map<CustomerWithAddressesDto>(customerEntity);
 
-        return CreatedAtAction("GetCustomersWithAddresses", new { customerId = customerWithAddressesToReturn.Id }, customerWithAddressesToReturn);
+        return CreatedAtAction("GetCustomersWithAddresses", new { id = customerWithAddressesToReturn.Id }, customerWithAddressesToReturn);
     }
 
     [HttpPut("with-addresses/{customerId}")]
     public IActionResult UpdateCustomerWithAddresses(int customerId, [FromBody] CustomerWithAddressesCreateDto customerWithAddressesCreateDto)
     {
         // Verifica se o cliente existe
-        var customerFromDataBase = _data.Customers.FirstOrDefault(c => c.Id == customerId);
+        var customerFromDatabase = _context.Customers.Include(c => c.Addresses).FirstOrDefault(c => c.Id == customerId);
 
-        if (customerFromDataBase == null)
+        if (customerFromDatabase == null)
         {
             return NotFound();
         }
 
         // Atualiza os dados do cliente
-        _mapper.Map(customerWithAddressesCreateDto, customerFromDataBase);
+        _mapper.Map(customerWithAddressesCreateDto, customerFromDatabase);
 
         // Remove todos os endereços existentes do cliente
-        customerFromDataBase.Addresses.Clear();
-
-        // Cria uma lista para armazenar os endereços mapeados
-        var addressEntities = new List<Address>();
-
-        // Obtém o maior ID de todos os endereços existentes
-        var maxAddressId = _data.Customers.SelectMany(customer => customer.Addresses).Max(address => address.Id);
+        customerFromDatabase.Addresses.Clear();
 
         foreach (var addressDto in customerWithAddressesCreateDto.Addresses)
         {
             // Mapeia cada DTO de endereço para a entidade de endereço
             var addressEntity = _mapper.Map<Address>(addressDto);
 
-            // Incrementa o ID do endereço
-            addressEntity.Id = ++maxAddressId;
-
-            // Adiciona o endereço mapeado à lista
-            addressEntities.Add(addressEntity);
+            // Adiciona o endereço à entidade de cliente
+            customerFromDatabase.Addresses.Add(addressEntity);
         }
 
-        // Adiciona a lista de endereços à entidade de cliente
-        customerFromDataBase.Addresses = addressEntities;
+        _context.SaveChanges();
 
         return NoContent();
     }
-
-
 }
