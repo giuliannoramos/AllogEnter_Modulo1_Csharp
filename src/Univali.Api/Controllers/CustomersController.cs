@@ -227,19 +227,25 @@ public class CustomersController : MainController
     [HttpPut("with-addresses/{customerId}")]
     public IActionResult UpdateCustomerWithAddresses(int customerId, [FromBody] CustomerWithAddressesCreateDto customerWithAddressesCreateDto)
     {
-        // Verifica se o cliente existe
-        var customerFromDatabase = _context.Customers.Include(c => c.Addresses).FirstOrDefault(c => c.Id == customerId);
+        // Seleciona o cliente pelo Id
+        var customerFromDatabase = _context.Customers.FirstOrDefault(c => c.Id == customerId);
 
+        // Verifica se existe
         if (customerFromDatabase == null)
         {
             return NotFound();
         }
 
         // Atualiza os dados do cliente
+        // Como está sem .include, caso nao passe o Id do endereço a ser atualizado no corpo, nao vai 
+        // apagar os dados e criar novos, somente cria os novos mantendo os antigos endereços
         _mapper.Map(customerWithAddressesCreateDto, customerFromDatabase);
 
+        // Salva no banco
         _context.SaveChanges();
 
+        // Retorna 204 indicando que foi atualizado
         return NoContent();
     }
+
 }
