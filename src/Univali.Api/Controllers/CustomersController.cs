@@ -238,18 +238,6 @@ public class CustomersController : MainController
         // Atualiza os dados do cliente
         _mapper.Map(customerWithAddressesCreateDto, customerFromDatabase);
 
-        // Remove todos os endereços existentes do cliente
-        customerFromDatabase.Addresses.Clear();
-
-        foreach (var addressDto in customerWithAddressesCreateDto.Addresses)
-        {
-            // Mapeia cada DTO de endereço para a entidade de endereço
-            var addressEntity = _mapper.Map<Address>(addressDto);
-
-            // Adiciona o endereço à entidade de cliente
-            customerFromDatabase.Addresses.Add(addressEntity);
-        }
-
         _context.SaveChanges();
 
         return NoContent();
