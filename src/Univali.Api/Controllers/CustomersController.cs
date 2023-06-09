@@ -187,6 +187,27 @@ public class CustomersController : MainController
         return Ok(customersToReturn);
     }
 
+    [HttpGet("with-address/{id}")]
+    public ActionResult<CustomerWithAddressesDto> GetCustomerWithAddressesById(int id)
+    {
+        // Obtém o cliente específico do banco de dados com os endereços associados
+        var customerFromDatabase = _context.Customers
+            .Include(c => c.Addresses)
+            .FirstOrDefault(c => c.Id == id);
+
+        // Verifica se o cliente foi encontrado
+        if (customerFromDatabase == null)
+        {
+            return NotFound(); // Retorna uma resposta HTTP 404 Not Found caso o cliente não seja encontrado
+        }
+
+        // Mapeia o cliente para o CustomerWithAddressesDto
+        var customerToReturn = _mapper.Map<CustomerWithAddressesDto>(customerFromDatabase);
+
+        // Retorna uma resposta HTTP 200 OK com o cliente e seus endereços
+        return Ok(customerToReturn);
+    }
+
     [HttpPost("with-addresses")]
     public ActionResult<CustomerWithAddressesDto> CreateCustomerWithAddresses([FromBody] CustomerWithAddressesCreateDto customerWithAddressesCreateDto)
     {
