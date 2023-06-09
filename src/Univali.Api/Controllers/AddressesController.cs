@@ -30,40 +30,6 @@ public class AddressesController : MainController
         _context = context ?? throw new ArgumentNullException(nameof(_context));
     }
 
-
-    // [HttpGet("{addressId}")]
-    // public ActionResult<AddressDto> GetAddress(int customerId, int addressId)
-    // {
-    //     // // Procurar o cliente com o ID fornecido
-    //     // var customerFromDataBase = _data.Customers.FirstOrDefault(c => c.Id == customerId);
-
-    //     // // Verificar se o cliente não foi encontrado
-    //     // if (customerFromDataBase == null)
-    //     // {
-    //     //     return NotFound();
-    //     // }
-
-    //     // // Procurar o endereço com o ID fornecido dentro do cliente encontrado
-    //     // var addressToReturn = customerFromDataBase.Addresses.FirstOrDefault(a => a.Id == addressId);
-
-    //     // // Verificar se o endereço não foi encontrado
-    //     // if (addressToReturn == null)
-    //     // {
-    //     //     return NotFound();
-    //     // }
-
-    //     // // Retornar o endereço encontrado com o status HTTP 200 OK
-    //     // return Ok(addressToReturn);
-
-    //     {
-    //         var addressToReturn = _data
-    //             .Customers.FirstOrDefault(customer => customer.Id == customerId)
-    //             ?.Addresses.FirstOrDefault(address => address.Id == addressId);
-
-    //         return addressToReturn != null ? Ok(addressToReturn) : NotFound();
-    //     }
-    // }
-
     [HttpGet("{addressId}")]
     public ActionResult<AddressDto> GetAddress(int customerId, int addressId)
     {
@@ -87,8 +53,6 @@ public class AddressesController : MainController
 
         return Ok(addressDto);
     }
-
-
 
     [HttpPost]
     public ActionResult<AddressDto> CreateAddress(int customerId, [FromBody] AddressForCreationDto addressForCreationDto)
@@ -142,26 +106,24 @@ public class AddressesController : MainController
     [HttpDelete("{addressId}")]
     public ActionResult DeleteAddress(int customerId, int addressId)
     {
-        // Procurar o cliente com o ID fornecido
-        var customerFromDataBase = _context.Customers.FirstOrDefault(c => c.Id == customerId);
+        var customerFromDatabase = _context.Customers
+        .Include(c => c.Addresses)
+        .FirstOrDefault(c => c.Id == customerId);
 
-        // Verificar se o cliente não foi encontrado
-        if (customerFromDataBase == null)
+        if (customerFromDatabase == null)
         {
             return NotFound();
         }
 
-        // Procurar o endereço com o ID fornecido dentro do cliente encontrado
-        var addressToDelete = customerFromDataBase.Addresses.FirstOrDefault(a => a.Id == addressId);
+        var addressToDelete = customerFromDatabase.Addresses.FirstOrDefault(address => address.Id == addressId);
 
-        // Verificar se o endereço não foi encontrado
         if (addressToDelete == null)
         {
             return NotFound();
         }
 
         // Remover o endereço da lista de endereços do cliente
-        customerFromDataBase.Addresses.Remove(addressToDelete);
+        customerFromDatabase.Addresses.Remove(addressToDelete);
         _context.SaveChanges();
 
         // Retornar uma resposta HTTP 204 No Content para indicar que o endereço foi removido com sucesso
