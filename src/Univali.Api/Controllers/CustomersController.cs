@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using Univali.Api.DbContexts;
 using Univali.Api.Entities;
 using Univali.Api.Models;
+using Univali.Api.Repositories;
 
 namespace Univali.Api.Controllers;
 
@@ -20,8 +21,9 @@ public class CustomersController : MainController
     private readonly Data _data;
     private readonly IMapper _mapper;
     private readonly CustomerContext _context;
+    private readonly ICustomerRepository _customerRepository;
 
-    public CustomersController(Data data, IMapper mapper, CustomerContext context)
+    public CustomersController(Data data, IMapper mapper, CustomerContext context, CustomerRepository customerRepository)
     {
         // Armazena uma referência aos dados fornecidos externamente, como um banco de dados.
         _data = data ?? throw new ArgumentNullException(nameof(data));
@@ -30,13 +32,15 @@ public class CustomersController : MainController
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
 
         _context = context ?? throw new ArgumentNullException(nameof(_context));
+
+        _customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(customerRepository));
     }
 
     [HttpGet]
     public ActionResult<IEnumerable<CustomerDto>> GetCustomers()
     {
         // Obtém os clientes do banco de dados
-        var customersFromDatabase = _context.Customers.OrderBy(c => c.Name).ToList();
+        var customersFromDatabase = _customerRepository.GetCustomers;
 
         // Mapeia os clientes para o tipo CustomerDto usando o AutoMapper
         var customersToReturn = _mapper.Map<IEnumerable<CustomerDto>>(customersFromDatabase);
@@ -49,7 +53,7 @@ public class CustomersController : MainController
     public ActionResult<CustomerDto> GetCustomerById(int id)
     {
         // Encontra o cliente no banco de dados com base no ID fornecido
-        var customerFromDatabase = _context.Customers.FirstOrDefault(c => c.Id == id);
+        var customerFromDatabase = _customerRepository.GetCustomerById;
 
         // Verifica se o cliente existe
         if (customerFromDatabase == null)
