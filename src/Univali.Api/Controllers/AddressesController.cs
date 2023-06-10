@@ -4,6 +4,7 @@ using Univali.Api.Entities;
 using Univali.Api.Models;
 using Univali.Api.DbContexts;
 using Microsoft.EntityFrameworkCore;
+using Univali.Api.Repositories;
 
 namespace Univali.Api.Controllers;
 
@@ -18,8 +19,9 @@ public class AddressesController : MainController
     private readonly Data _data;
     private readonly IMapper _mapper;
     private readonly CustomerContext _context;
+    private readonly ICustomerRepository _customerRepository;
 
-    public AddressesController(Data data, IMapper mapper, CustomerContext context)
+    public AddressesController(Data data, IMapper mapper, CustomerContext context, ICustomerRepository customerRepository)
     {
         // Armazena uma referência aos dados fornecidos externamente, como um banco de dados.
         _data = data ?? throw new ArgumentNullException(nameof(data));
@@ -28,21 +30,21 @@ public class AddressesController : MainController
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
 
         _context = context ?? throw new ArgumentNullException(nameof(_context));
+
+        _customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(context));
     }
 
     [HttpGet("{addressId}")]
-    public ActionResult<AddressDto> GetAddress(int customerId, int addressId)
+    public async Task<ActionResult<AddressDto>> GetAddress(int customerId, int addressId)
     {
-        var customerFromDatabase = _context.Customers
-        .Include(c => c.Addresses)
-        .FirstOrDefault(c => c.Id == customerId);
+        var customerFromDatabase = await _customerRepository.GetCustomerWithAddressesByIdAsync(customerId);
 
         if (customerFromDatabase == null)
         {
             return NotFound();
         }
 
-        var addressToReturn = customerFromDatabase.Addresses.FirstOrDefault(address => address.Id == addressId);
+        var addressToReturn = await _customerRepository.GetAddressAsync(addressId);
 
         if (addressToReturn == null)
         {
@@ -55,10 +57,10 @@ public class AddressesController : MainController
     }
 
     [HttpPost]
-    public ActionResult<AddressDto> CreateAddress(int customerId, [FromBody] AddressForCreationDto addressForCreationDto)
+    public async Task<ActionResult<AddressDto>> CreateAddress(int customerId, [FromBody] AddressForCreationDto addressForCreationDto)
     {
         // Procura o cliente com o ID fornecido
-        var customerFromDataBase = _context.Customers.FirstOrDefault(c => c.Id == customerId);
+        var customerFromDataBase = await _customerRepository.GetCustomerByIdAsync(customerId);
 
         // Verifica se o cliente não foi encontrado
         if (customerFromDataBase == null)
@@ -80,22 +82,25 @@ public class AddressesController : MainController
     }
 
     [HttpPut("{addressId}")]
-    public ActionResult UpdateAddress(int customerId, int addressId,
-     AddressForUpdateDto addressForUpdateDto)
+    public async Task<ActionResult> UpdateAddress(int customerId, int addressId, AddressForUpdateDto addressForUpdateDto)
     {
         if (addressForUpdateDto.Id != addressId) return BadRequest();
 
-        // Método Any retorna true ou false.
-        // Se customer existe retorna true, se não existe retorna false.
-        var customerExists = _context.Customers
-            .Any(c => c.Id == customerId);
+        // Procura o cliente com o ID fornecido
+        var customerFromDataBase = await _customerRepository.GetCustomerByIdAsync(customerId);
 
-        if (!customerExists) return NotFound();
+        // Verifica se o cliente não foi encontrado
+        if (customerFromDataBase == null)
+        {
+            return NotFound();
+        }
 
-        var addressFromDatabase = _context.Addresses
-            .FirstOrDefault(a => a.CustomerId == customerId && a.Id == addressId);
+        var addressFromDatabase = await _customerRepository.GetAddressAsync(addressId);
 
-        if (addressFromDatabase == null) return NotFound();
+        if (addressFromDatabase == null)
+        {
+            return NotFound();
+        }
 
         _mapper.Map(addressForUpdateDto, addressFromDatabase);
         _context.SaveChanges();
@@ -104,18 +109,16 @@ public class AddressesController : MainController
     }
 
     [HttpDelete("{addressId}")]
-    public ActionResult DeleteAddress(int customerId, int addressId)
+    public async Task<ActionResult> DeleteAddress(int customerId, int addressId)
     {
-        var customerFromDatabase = _context.Customers
-        .Include(c => c.Addresses)
-        .FirstOrDefault(c => c.Id == customerId);
+        var customerFromDatabase = await _customerRepository.GetCustomerWithAddressesByIdAsync(customerId);
 
         if (customerFromDatabase == null)
         {
             return NotFound();
         }
 
-        var addressToDelete = customerFromDatabase.Addresses.FirstOrDefault(address => address.Id == addressId);
+        var addressToDelete = await _customerRepository.GetAddressAsync(addressId);
 
         if (addressToDelete == null)
         {
@@ -131,12 +134,10 @@ public class AddressesController : MainController
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<AddressDto>> GetAddresses(int customerId)
+    public async Task<ActionResult<IEnumerable<AddressDto>>> GetAddresses(int customerId)
     {
         // Procurar o cliente com o ID fornecido
-        var customerFromDatabase = _context.Customers
-       .Include(c => c.Addresses)
-       .FirstOrDefault(c => c.Id == customerId);
+        var customerFromDatabase = await _customerRepository.GetCustomerWithAddressesByIdAsync(customerId);
 
         // Verificar se o cliente não foi encontrado
         if (customerFromDatabase == null)

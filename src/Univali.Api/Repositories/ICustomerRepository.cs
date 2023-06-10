@@ -12,6 +12,8 @@ public interface ICustomerRepository
 
     Task<IEnumerable<Customer>> GetCustomersWithAddressesAsync();
 
-    Task<Customer?> GetCustomerWithAddressesByIdAsync(int id);
+    Task<Customer?> GetCustomerWithAddressesByIdAsync(int customerId);
+
+    Task<Address?> GetAddressAsync(int addressId);
 
 }

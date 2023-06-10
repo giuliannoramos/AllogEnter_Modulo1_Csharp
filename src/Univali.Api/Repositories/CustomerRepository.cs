@@ -18,9 +18,9 @@ public class CustomerRepository : ICustomerRepository
         return await _context.Customers.OrderBy(c => c.Name).ToListAsync();
     }
 
-    public async Task<Customer?> GetCustomerByIdAsync(int Id)
+    public async Task<Customer?> GetCustomerByIdAsync(int customerId)
     {
-        return await _context.Customers.FirstOrDefaultAsync(c => c.Id == Id);
+        return await _context.Customers.FirstOrDefaultAsync(c => c.Id == customerId);
     }
 
     public async Task<Customer?> GetCustomerByCpfAsync(string Cpf)
@@ -33,8 +33,13 @@ public class CustomerRepository : ICustomerRepository
         return await _context.Customers.Include(c => c.Addresses).ToListAsync();
     }
 
-    public async Task<Customer?> GetCustomerWithAddressesByIdAsync(int id)
+    public async Task<Customer?> GetCustomerWithAddressesByIdAsync(int customerId)
     {
-        return await _context.Customers.Include(c => c.Addresses).FirstOrDefaultAsync(c => c.Id == id);
+        return await _context.Customers.Include(c => c.Addresses).FirstOrDefaultAsync(c => c.Id == customerId);
+    }
+
+    public async Task<Address?> GetAddressAsync(int addressId)
+    {
+        return await _context.Addresses.FirstOrDefaultAsync(address => address.Id == addressId);
     }
 }
