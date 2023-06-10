@@ -23,7 +23,7 @@ public class CustomersController : MainController
     private readonly CustomerContext _context;
     private readonly ICustomerRepository _customerRepository;
 
-    public CustomersController(Data data, IMapper mapper, CustomerContext context, CustomerRepository customerRepository)
+    public CustomersController(Data data, IMapper mapper, CustomerContext context, ICustomerRepository customerRepository)
     {
         // Armazena uma referência aos dados fornecidos externamente, como um banco de dados.
         _data = data ?? throw new ArgumentNullException(nameof(data));
@@ -31,16 +31,16 @@ public class CustomersController : MainController
         // Armazena uma referência ao objeto responsável por mapear entre diferentes tipos de objetos, como mapear Customer para CustomerDto
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
 
-        _context = context ?? throw new ArgumentNullException(nameof(_context));
+        _context = context ?? throw new ArgumentNullException(nameof(context));
 
-        _customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(customerRepository));
+        _customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(context));
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<CustomerDto>> GetCustomers()
+    public async Task<ActionResult<IEnumerable<CustomerDto>>> GetCustomers()
     {
         // Obtém os clientes do banco de dados
-        var customersFromDatabase = _customerRepository.GetCustomers;
+        var customersFromDatabase = await _customerRepository.GetCustomersAsync();
 
         // Mapeia os clientes para o tipo CustomerDto usando o AutoMapper
         var customersToReturn = _mapper.Map<IEnumerable<CustomerDto>>(customersFromDatabase);
@@ -50,10 +50,10 @@ public class CustomersController : MainController
     }
 
     [HttpGet("{id}", Name = "GetCustomerById")]
-    public ActionResult<CustomerDto> GetCustomerById(int id)
+    public async Task<ActionResult<CustomerDto>> GetCustomerById(int id)
     {
         // Encontra o cliente no banco de dados com base no ID fornecido
-        var customerFromDatabase = _customerRepository.GetCustomerById;
+        var customerFromDatabase = await _customerRepository.GetCustomerByIdAsync(id);
 
         // Verifica se o cliente existe
         if (customerFromDatabase == null)
@@ -69,10 +69,10 @@ public class CustomersController : MainController
     }
 
     [HttpGet("cpf/{cpf}")]
-    public ActionResult<CustomerDto> GetCustomerByCpf(string cpf)
+    public async Task<ActionResult<CustomerDto>> GetCustomerByCpf(string cpf)
     {
         // Encontra o cliente no banco de dados com base no CPF fornecido
-        var customerFromDatabase = _context.Customers.FirstOrDefault(c => c.Cpf == cpf);
+        var customerFromDatabase = await _customerRepository.GetCustomerByCpfAsync(cpf);
 
         // Verifica se o cliente existe
         if (customerFromDatabase == null)
@@ -105,14 +105,13 @@ public class CustomersController : MainController
     }
 
     [HttpPut("{id}")]
-    public ActionResult UpdateCustomer(int id, CustomerForUpdateDto customerForUpdateDto)
+    public async Task<ActionResult> UpdateCustomer(int id, CustomerForUpdateDto customerForUpdateDto)
     {
         // Verifica se o ID fornecido corresponde ao ID no objeto customerForUpdateDto
         if (id != customerForUpdateDto.Id) return BadRequest();
 
         // Encontra o cliente no banco de dados com base no ID fornecido
-        var customerFromDatabase = _context.Customers
-            .FirstOrDefault(customer => customer.Id == id);
+        var customerFromDatabase = await _customerRepository.GetCustomerByIdAsync(id);
 
         // Verifica se o cliente existe
         if (customerFromDatabase == null) return NotFound();
@@ -127,10 +126,10 @@ public class CustomersController : MainController
     }
 
     [HttpDelete("{id}")]
-    public ActionResult DeleteCustomer(int id)
+    public async Task<ActionResult> DeleteCustomer(int id)
     {
         // Encontra o cliente no banco de dados com base no ID fornecido
-        var customerFromDatabase = _context.Customers.FirstOrDefault(c => c.Id == id);
+        var customerFromDatabase = await _customerRepository.GetCustomerByIdAsync(id);
 
         // Verifica se o cliente existe
         if (customerFromDatabase == null)
@@ -147,10 +146,10 @@ public class CustomersController : MainController
     }
 
     [HttpPatch("{id}")]
-    public ActionResult PartiallyUpdateCustomer([FromBody] JsonPatchDocument<CustomerForPatchDto> patchDocument, [FromRoute] int id)
+    public async Task<ActionResult> PartiallyUpdateCustomer([FromBody] JsonPatchDocument<CustomerForPatchDto> patchDocument, [FromRoute] int id)
     {
         // Encontra o cliente no banco de dados com base no ID fornecido
-        var customerFromDatabase = _context.Customers.FirstOrDefault(c => c.Id == id);
+        var customerFromDatabase = await _customerRepository.GetCustomerByIdAsync(id);
 
         // Verifica se o cliente existe
         if (customerFromDatabase == null)
@@ -179,10 +178,10 @@ public class CustomersController : MainController
     }
 
     [HttpGet("with-address")]
-    public ActionResult<IEnumerable<CustomerWithAddressesDto>> GetCustomersWithAddresses()
+    public async Task<ActionResult<IEnumerable<CustomerWithAddressesDto>>> GetCustomersWithAddresses()
     {
         // Obtém os clientes do banco de dados com os endereços associados
-        var customersFromDatabase = _context.Customers.Include(c => c.Addresses);
+        var customersFromDatabase = await _customerRepository.GetCustomersWithAddressesAsync();
 
         // Mapeia a lista de clientes para a lista de CustomerWithAddressesDto
         var customersToReturn = _mapper.Map<IEnumerable<CustomerWithAddressesDto>>(customersFromDatabase);
@@ -192,12 +191,10 @@ public class CustomersController : MainController
     }
 
     [HttpGet("with-address/{id}")]
-    public ActionResult<CustomerWithAddressesDto> GetCustomerWithAddressesById(int id)
+    public async Task<ActionResult<CustomerWithAddressesDto>> GetCustomerWithAddressesById(int id)
     {
         // Obtém o cliente específico do banco de dados com os endereços associados
-        var customerFromDatabase = _context.Customers
-            .Include(c => c.Addresses)
-            .FirstOrDefault(c => c.Id == id);
+        var customerFromDatabase = await _customerRepository.GetCustomerWithAddressesByIdAsync(id);
 
         // Verifica se o cliente foi encontrado
         if (customerFromDatabase == null)
@@ -229,10 +226,10 @@ public class CustomersController : MainController
     }
 
     [HttpPut("with-addresses/{customerId}")]
-    public IActionResult UpdateCustomerWithAddresses(int customerId, [FromBody] CustomerWithAddressesCreateDto customerWithAddressesCreateDto)
+    public async Task<IActionResult> UpdateCustomerWithAddresses(int customerId, [FromBody] CustomerWithAddressesCreateDto customerWithAddressesCreateDto)
     {
         // Seleciona o cliente pelo Id
-        var customerFromDatabase = _context.Customers.FirstOrDefault(c => c.Id == customerId);
+        var customerFromDatabase = await _customerRepository.GetCustomerByIdAsync(customerId);
 
         // Verifica se existe
         if (customerFromDatabase == null)
@@ -240,9 +237,7 @@ public class CustomersController : MainController
             return NotFound();
         }
 
-        // Atualiza os dados do cliente
-        // Como está sem .include, caso nao passe o Id do endereço a ser atualizado no corpo, nao vai 
-        // apagar os dados e criar novos, somente cria os novos mantendo os antigos endereços
+        // Atualiza os dados do cliente        
         _mapper.Map(customerWithAddressesCreateDto, customerFromDatabase);
 
         // Salva no banco

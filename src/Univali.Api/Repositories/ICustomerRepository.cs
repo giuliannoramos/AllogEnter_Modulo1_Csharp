@@ -4,7 +4,14 @@ namespace Univali.Api.Repositories;
 
 public interface ICustomerRepository
 {
-    IEnumerable<Customer>GetCustomers();  
+    Task<IEnumerable<Customer>> GetCustomersAsync();  
 
-    Customer? GetCustomerById(int customerId);  
+    Task<Customer?> GetCustomerByIdAsync(int customerId);  
+
+    Task<Customer?> GetCustomerByCpfAsync(string cpf);
+
+    Task<IEnumerable<Customer>> GetCustomersWithAddressesAsync();
+
+    Task<Customer?> GetCustomerWithAddressesByIdAsync(int id);
+
 }

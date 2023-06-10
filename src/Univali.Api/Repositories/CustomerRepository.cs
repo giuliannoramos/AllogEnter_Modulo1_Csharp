@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Univali.Api.DbContexts;
 using Univali.Api.Entities;
 
@@ -12,13 +13,28 @@ public class CustomerRepository : ICustomerRepository
         _context = customerContext;
     }
 
-    public IEnumerable<Customer>GetCustomers()
+    public async Task<IEnumerable<Customer>> GetCustomersAsync()
     {
-        return _context.Customers.OrderBy(c => c.Name).ToList();
+        return await _context.Customers.OrderBy(c => c.Name).ToListAsync();
     }
 
-    public Customer? GetCustomerById(int customerId)
+    public async Task<Customer?> GetCustomerByIdAsync(int Id)
     {
-        return  _context.Customers.FirstOrDefault(c => c.Id == customerId);
+        return await _context.Customers.FirstOrDefaultAsync(c => c.Id == Id);
+    }
+
+    public async Task<Customer?> GetCustomerByCpfAsync(string Cpf)
+    {
+        return await _context.Customers.FirstOrDefaultAsync(c => c.Cpf == Cpf);
+    }
+
+    public async Task<IEnumerable<Customer>> GetCustomersWithAddressesAsync()
+    {
+        return await _context.Customers.Include(c => c.Addresses).ToListAsync();
+    }
+
+    public async Task<Customer?> GetCustomerWithAddressesByIdAsync(int id)
+    {
+        return await _context.Customers.Include(c => c.Addresses).FirstOrDefaultAsync(c => c.Id == id);
     }
 }
