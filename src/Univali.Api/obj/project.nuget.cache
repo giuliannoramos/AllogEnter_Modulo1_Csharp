@@ -1,12 +1,14 @@
 {
   "version": 2,
-  "dgSpecHash": "YcEgAkfUOqLpMXEKiQak3IWLmclmS+F8YOAmnC59WGBsOiUrnj5XarGDp6yOvdQFca/PVMEWvn1+rRMA4CiHNw==",
+  "dgSpecHash": "brETxt4/uk9WGd2kmKEHLiTgLQ2pUOHnlSZehNoVtdhGLMs91yxAVMwQUJ/9D+4mUNZrFqEDaUxW+aASYIb78Q==",
   "success": true,
   "projectFilePath": "C:\\Users\\giule\\source\\repos\\AllogEnter_Modulo1_Csharp\\src\\Univali.Api\\Univali.Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\giule\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\giule\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
     "C:\\Users\\giule\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
+    "C:\\Users\\giule\\.nuget\\packages\\mediatr\\12.0.1\\mediatr.12.0.1.nupkg.sha512",
+    "C:\\Users\\giule\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512",
     "C:\\Users\\giule\\.nuget\\packages\\microsoft.aspnetcore.jsonpatch\\7.0.0\\microsoft.aspnetcore.jsonpatch.7.0.0.nupkg.sha512",
     "C:\\Users\\giule\\.nuget\\packages\\microsoft.aspnetcore.mvc.newtonsoftjson\\7.0.0\\microsoft.aspnetcore.mvc.newtonsoftjson.7.0.0.nupkg.sha512",
     "C:\\Users\\giule\\.nuget\\packages\\microsoft.aspnetcore.openapi\\7.0.0\\microsoft.aspnetcore.openapi.7.0.0.nupkg.sha512",

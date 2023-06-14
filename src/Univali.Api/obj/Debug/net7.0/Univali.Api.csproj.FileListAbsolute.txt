@@ -117,3 +117,5 @@ C:\Users\giule\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debug\
 C:\Users\giule\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debug\net7.0\Microsoft.Extensions.DependencyModel.dll
 C:\Users\giule\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debug\net7.0\Mono.TextTemplating.dll
 C:\Users\giule\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debug\net7.0\System.CodeDom.dll
+C:\Users\giule\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debug\net7.0\MediatR.dll
+C:\Users\giule\source\repos\AllogEnter_Modulo1_Csharp\src\Univali.Api\bin\Debug\net7.0\MediatR.Contracts.dll

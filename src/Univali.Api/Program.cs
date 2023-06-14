@@ -5,6 +5,13 @@ using Univali.Api;
 using Univali.Api.Configuration;
 using Univali.Api.DbContexts;
 using Univali.Api.Extensions;
+using Univali.Api.Features.Customers.Commands.CreateCustomer;
+using Univali.Api.Features.Customers.Commands.DeleteCustomer;
+using Univali.Api.Features.Customers.Commands.PatchCustomer;
+using Univali.Api.Features.Customers.Commands.UpdateCustomer;
+using Univali.Api.Features.Customers.Queries.GetAllCustomers;
+using Univali.Api.Features.Customers.Queries.GetCustomerCpf;
+using Univali.Api.Features.Customers.Queries.GetCustomerDetail;
 using Univali.Api.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +29,21 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddSingleton<Data>();
 
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+
+builder.Services.AddTransient<IGetCustomerDetailQueryHandler, GetCustomerDetailQueryHandler>();
+
+builder.Services.AddTransient<IGetCustomerCpfQueryHandler, GetCustomerCpfQueryHandler>();
+
+builder.Services.AddTransient<IGetAllCustomersQueryHandler, GetAllCustomersQueryHandler>();
+
+builder.Services.AddTransient<ICreateCustomerCommandHandler, CreateCustomerCommandHandler>();
+
+builder.Services.AddTransient<IUpdateCustomerCommandHandler, UpdateCustomerCommandHandler>();
+
+builder.Services.AddTransient<IDeleteCustomerCommandHandler, DeleteCustomerCommandHandler>();
+
+builder.Services.AddTransient<IPatchCustomerCommandHandler, PatchCustomerCommandHandler>();
+
 
 builder.Services.AddDbContext<CustomerContext>(options =>
 {

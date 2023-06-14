@@ -42,4 +42,19 @@ public class CustomerRepository : ICustomerRepository
     {
         return await _context.Addresses.FirstOrDefaultAsync(address => address.Id == addressId);
     }
+
+    public void AddCustomer(Customer customer)
+    {
+        _context.Customers.Add(customer);
+    }
+
+    public void DeleteCustomer(Customer customer)
+    {
+        _context.Customers.Remove(customer);
+    }
+
+    public async Task<bool> SaveChangesAsync()
+    {
+        return (await _context.SaveChangesAsync() > 0);
+    }
 }

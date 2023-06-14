@@ -7,6 +7,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Univali.Api.DbContexts;
 using Univali.Api.Entities;
+using Univali.Api.Features.Customers.Commands.CreateCustomer;
+using Univali.Api.Features.Customers.Commands.DeleteCustomer;
+using Univali.Api.Features.Customers.Commands.PatchCustomer;
+using Univali.Api.Features.Customers.Commands.UpdateCustomer;
+using Univali.Api.Features.Customers.Queries.GetAllCustomers;
+using Univali.Api.Features.Customers.Queries.GetCustomerCpf;
+using Univali.Api.Features.Customers.Queries.GetCustomerDetail;
 using Univali.Api.Models;
 using Univali.Api.Repositories;
 
@@ -33,149 +40,119 @@ public class CustomersController : MainController
 
         _context = context ?? throw new ArgumentNullException(nameof(context));
 
-        _customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(context));
+        _customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(customerRepository));
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CustomerDto>>> GetCustomers()
+    public async Task<ActionResult<IEnumerable<CustomerDto>>> GetCustomers([FromServices] IGetAllCustomersQueryHandler handler)
     {
-        // Obtém os clientes do banco de dados
-        var customersFromDatabase = await _customerRepository.GetCustomersAsync();
+        // Cria uma nova instância do objeto GetCustomerDetailQuery sem especificar um ID
+        var getCustomerDetailQuery = new GetCustomerDetailQuery();
 
-        // Mapeia os clientes para o tipo CustomerDto usando o AutoMapper
-        var customersToReturn = _mapper.Map<IEnumerable<CustomerDto>>(customersFromDatabase);
+        // Chama o manipulador (handler) responsável por lidar com a consulta GetCustomerDetailQuery
+        // e aguarda o resultado (await) da execução assíncrona.
+        var customersToReturn = await handler.HandleGetAll();
 
         // Retorna uma resposta "OK" (200) com os clientes mapeados para o tipo CustomerDto
         return Ok(customersToReturn);
     }
 
-    [HttpGet("{id}", Name = "GetCustomerById")]
-    public async Task<ActionResult<CustomerDto>> GetCustomerById(int id)
+    [HttpGet("{customerId}", Name = "GetCustomerById")]
+    public async Task<ActionResult<CustomerDto>> GetCustomerById([FromServices] IGetCustomerDetailQueryHandler handler, int customerId)
     {
-        // Encontra o cliente no banco de dados com base no ID fornecido
-        var customerFromDatabase = await _customerRepository.GetCustomerByIdAsync(id);
+        // Cria uma nova instância do objeto GetCustomerDetailQuery com o ID do cliente fornecido
+        var getCustomerDetailQuery = new GetCustomerDetailQuery { Id = customerId };
 
-        // Verifica se o cliente existe
-        if (customerFromDatabase == null)
+        // Chama o manipulador (handler) responsável por lidar com a consulta GetCustomerDetailQuery
+        // e aguarda o resultado (await) da execução assíncrona.
+        var customerToReturn = await handler.Handle(getCustomerDetailQuery);
+
+        // Verifica se o cliente retornado é nulo. Se for, retorna uma resposta HTTP 404 (NotFound).
+        if (customerToReturn == null)
         {
             return NotFound();
         }
 
-        // Mapeia o customerFromDatabase para o tipo CustomerDto usando o AutoMapper
-        var customerToReturn = _mapper.Map<CustomerDto>(customerFromDatabase);
-
-        // Retorna uma resposta "OK" (200) com o customerToReturn
+        // Se o cliente existir, retorna uma resposta HTTP 200 (Ok) contendo o cliente retornado.
         return Ok(customerToReturn);
     }
 
     [HttpGet("cpf/{cpf}")]
-    public async Task<ActionResult<CustomerDto>> GetCustomerByCpf(string cpf)
+    public async Task<ActionResult<CustomerDto>> GetCustomerByCpf(string cpf, [FromServices] IGetCustomerCpfQueryHandler handler)
     {
-        // Encontra o cliente no banco de dados com base no CPF fornecido
-        var customerFromDatabase = await _customerRepository.GetCustomerByCpfAsync(cpf);
+        // Cria uma nova instância do objeto GetCustomerCpfQuery com o CPF do cliente fornecido
+        var getCustomerCpfQuery = new GetCustomerCpfQuery { Cpf = cpf };
 
-        // Verifica se o cliente existe
-        if (customerFromDatabase == null)
+        // Chama o manipulador (handler) responsável por lidar com a consulta GetCustomerCpfQuery
+        // e aguarda o resultado (await) da execução assíncrona.
+        var customerToReturn = await handler.HandleGetCpf(getCustomerCpfQuery);
+
+        // Verifica se o cliente retornado é nulo. Se for, retorna uma resposta HTTP 404 (NotFound).
+        if (customerToReturn == null)
         {
             return NotFound();
         }
 
-        // Mapeia o customerFromDatabase para o tipo CustomerDto usando o AutoMapper
-        var customerToReturn = _mapper.Map<CustomerDto>(customerFromDatabase);
-
-        // Retorna uma resposta "OK" (200) com o customerToReturn
+        // Se o cliente existir, retorna uma resposta HTTP 200 (Ok) contendo o cliente retornado.
         return Ok(customerToReturn);
     }
 
     [HttpPost]
-    public ActionResult<CustomerDto> CreateCustomer(CustomerForCreationDto customerForCreationDto)
+    public async Task<ActionResult<CustomerDto>> CreateCustomer(CreateCustomerCommand createCustomerCommand, [FromServices] ICreateCustomerCommandHandler handler)
     {
-        // Mapeia o customerForCreationDto para um objeto Customer usando o AutoMapper
-        var customerEntity = _mapper.Map<Customer>(customerForCreationDto);
+        // Chama o manipulador (handler) responsável por lidar com o comando CreateCustomerCommand
+        // e aguarda o resultado (await) da execução assíncrona.
+        var customerToReturn = await handler.Handle(createCustomerCommand);
 
-        // Adiciona o cliente à coleção Customers no contexto do banco de dados
-        _context.Customers.Add(customerEntity);
-        _context.SaveChanges();
-
-        // Mapeia o customerEntity para o tipo CustomerDto usando o AutoMapper
-        var customerToReturn = _mapper.Map<CustomerDto>(customerEntity);
-
-        // Retorna uma resposta "Created" (201) com a rota para o recurso criado
-        return CreatedAtRoute("GetCustomerById", new { id = customerToReturn.Id }, customerToReturn);
+        return CreatedAtRoute("GetCustomerById", new { customerId = customerToReturn.Id }, customerToReturn);
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult> UpdateCustomer(int id, CustomerForUpdateDto customerForUpdateDto)
+    public async Task<ActionResult> UpdateCustomer(int id, UpdateCustomerCommand updateCustomerCommand, [FromServices] IUpdateCustomerCommandHandler handler)
     {
-        // Verifica se o ID fornecido corresponde ao ID no objeto customerForUpdateDto
-        if (id != customerForUpdateDto.Id) return BadRequest();
+        // Verifica se o ID fornecido corresponde ao ID no objeto UpdateCustomerCommand
+        if (id != updateCustomerCommand.Id)
+        {
+            // Se os IDs não corresponderem, retorna um resultado "Bad Request" (400)
+            return BadRequest();
+        }
 
-        // Encontra o cliente no banco de dados com base no ID fornecido
-        var customerFromDatabase = await _customerRepository.GetCustomerByIdAsync(id);
+        // Chama o manipulador responsável por atualizar o cliente
+        await handler.HandleUpdate(updateCustomerCommand);
 
-        // Verifica se o cliente existe
-        if (customerFromDatabase == null) return NotFound();
-
-        // Mapeia as propriedades do customerForUpdateDto para o customerFromDatabase usando o AutoMapper
-        _mapper.Map(customerForUpdateDto, customerFromDatabase);
-
-        _context.SaveChanges();
-
-        // Retorna uma resposta "Sem conteúdo" (204) para indicar que o cliente foi atualizado com sucesso
+        // Retorna um resultado "Sem conteúdo" (204) para indicar que o cliente foi atualizado com sucesso
         return NoContent();
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteCustomer(int id)
+    public async Task<IActionResult> DeleteCustomer(int id, [FromServices] IDeleteCustomerCommandHandler handler)
     {
-        // Encontra o cliente no banco de dados com base no ID fornecido
-        var customerFromDatabase = await _customerRepository.GetCustomerByIdAsync(id);
+        var deleteCustomerCommand = new DeleteCustomerCommand { Id = id };
 
-        // Verifica se o cliente existe
-        if (customerFromDatabase == null)
+        try
         {
-            return NotFound();
+            await handler.HandleDelete(deleteCustomerCommand);
+        }
+        catch (InvalidOperationException)
+        {
+            return NotFound(); // Cliente não encontrado
         }
 
-        // Remove o cliente da coleção Customers no contexto do banco de dados
-        _context.Customers.Remove(customerFromDatabase);
-        _context.SaveChanges();
-
-        // Retorna uma resposta "Sem conteúdo" (204) para indicar que o cliente foi removido com sucesso
-        return NoContent();
+        return NoContent(); // Cliente excluído com sucesso
     }
 
     [HttpPatch("{id}")]
-    public async Task<ActionResult> PartiallyUpdateCustomer([FromBody] JsonPatchDocument<CustomerForPatchDto> patchDocument, [FromRoute] int id)
+    public async Task<ActionResult> PartiallyUpdateCustomer(int id, [FromBody] PatchCustomerCommand patchCommand, [FromServices] IPatchCustomerCommandHandler handler)
     {
-        // Encontra o cliente no banco de dados com base no ID fornecido
-        var customerFromDatabase = await _customerRepository.GetCustomerByIdAsync(id);
+        // Verifica se o ID fornecido corresponde ao ID no objeto PatchCustomerCommand
+        if (id != patchCommand.Id) return BadRequest();
 
-        // Verifica se o cliente existe
-        if (customerFromDatabase == null)
-        {
-            return NotFound();
-        }
-
-        // Mapeia o cliente do banco de dados para o tipo CustomerForPatchDto usando o AutoMapper
-        var customerToPatch = _mapper.Map<CustomerForPatchDto>(customerFromDatabase);
-
-        // Aplica as alterações parciais do JsonPatchDocument ao objeto customerToPatch
-        patchDocument.ApplyTo(customerToPatch, ModelState);
-
-        if (!TryValidateModel(customerToPatch))
-        {
-            return ValidationProblem(ModelState);
-        }
-
-        // Mapeia as alterações aplicadas de volta para o objeto customerFromDatabase
-        _mapper.Map(customerToPatch, customerFromDatabase);
-
-        _context.SaveChanges();
+        await handler.HandlePatch(patchCommand);
 
         // Retorna um resultado de "Sem conteúdo" (204) para indicar que a atualização parcial foi concluída com sucesso
         return NoContent();
     }
+
 
     [HttpGet("with-address")]
     public async Task<ActionResult<IEnumerable<CustomerWithAddressesDto>>> GetCustomersWithAddresses()
