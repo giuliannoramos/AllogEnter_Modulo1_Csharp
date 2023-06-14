@@ -31,8 +31,7 @@ namespace Univali.Api.Features.Customers.Commands.UpdateCustomer
             _mapper.Map(request, customerEntity);
 
             // Salva as alterações no repositório
-            await _customerRepository.SaveChangesAsync();         
-            
+            await _customerRepository.SaveChangesAsync();           
         }
     }
 }

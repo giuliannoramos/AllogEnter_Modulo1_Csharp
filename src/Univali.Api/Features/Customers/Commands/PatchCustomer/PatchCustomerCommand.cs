@@ -5,7 +5,7 @@ namespace Univali.Api.Features.Customers.Commands.PatchCustomer
 {
     public class PatchCustomerCommand
     {
-        [Required(ErrorMessage = "You should fill out a Id")]
+        // [Required(ErrorMessage = "You should fill out a Id")]
         public int Id { get; set; }
 
         [Required(ErrorMessage = "You should fill out a Name")]

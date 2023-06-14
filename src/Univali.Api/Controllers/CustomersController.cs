@@ -14,6 +14,7 @@ using Univali.Api.Features.Customers.Commands.UpdateCustomer;
 using Univali.Api.Features.Customers.Queries.GetAllCustomers;
 using Univali.Api.Features.Customers.Queries.GetCustomerCpf;
 using Univali.Api.Features.Customers.Queries.GetCustomerDetail;
+using Univali.Api.Features.Customers.Queries.GetCustomerWithAddresses;
 using Univali.Api.Models;
 using Univali.Api.Repositories;
 
@@ -143,9 +144,7 @@ public class CustomersController : MainController
 
     [HttpPatch("{id}")]
     public async Task<ActionResult> PartiallyUpdateCustomer(int id, [FromBody] PatchCustomerCommand patchCommand, [FromServices] IPatchCustomerCommandHandler handler)
-    {
-        // Verifica se o ID fornecido corresponde ao ID no objeto PatchCustomerCommand
-        if (id != patchCommand.Id) return BadRequest();
+    {      
 
         await handler.HandlePatch(patchCommand);
 
@@ -153,6 +152,37 @@ public class CustomersController : MainController
         return NoContent();
     }
 
+    //  [HttpPatch("{id}")]
+    // public async Task<ActionResult> PartiallyUpdateCustomer([FromBody] JsonPatchDocument<CustomerForPatchDto> patchDocument, [FromRoute] int id)
+    // {
+    //     // Encontra o cliente no banco de dados com base no ID fornecido
+    //     var customerFromDatabase = await _customerRepository.GetCustomerByIdAsync(id);
+
+    //     // Verifica se o cliente existe
+    //     if (customerFromDatabase == null)
+    //     {
+    //         return NotFound();
+    //     }
+
+    //     // Mapeia o cliente do banco de dados para o tipo CustomerForPatchDto usando o AutoMapper
+    //     var customerToPatch = _mapper.Map<CustomerForPatchDto>(customerFromDatabase);
+
+    //     // Aplica as alterações parciais do JsonPatchDocument ao objeto customerToPatch
+    //     patchDocument.ApplyTo(customerToPatch, ModelState);
+
+    //     if (!TryValidateModel(customerToPatch))
+    //     {
+    //         return ValidationProblem(ModelState);
+    //     }
+
+    //     // Mapeia as alterações aplicadas de volta para o objeto customerFromDatabase
+    //     _mapper.Map(customerToPatch, customerFromDatabase);
+
+    //     _context.SaveChanges();
+
+    //     // Retorna um resultado de "Sem conteúdo" (204) para indicar que a atualização parcial foi concluída com sucesso
+    //     return NoContent();
+    // }
 
     [HttpGet("with-address")]
     public async Task<ActionResult<IEnumerable<CustomerWithAddressesDto>>> GetCustomersWithAddresses()
@@ -168,21 +198,17 @@ public class CustomersController : MainController
     }
 
     [HttpGet("with-address/{id}")]
-    public async Task<ActionResult<CustomerWithAddressesDto>> GetCustomerWithAddressesById(int id)
+    public async Task<ActionResult<CustomerWithAddressesDto>> GetCustomerWithAddressesById([FromServices] IGetCustomerWithAddressesQueryHandler handler, int customerId)
     {
-        // Obtém o cliente específico do banco de dados com os endereços associados
-        var customerFromDatabase = await _customerRepository.GetCustomerWithAddressesByIdAsync(id);
+        var getCustomerWithAddressesQuery = new GetCustomerWithAddressesQuery { Id = customerId };
 
-        // Verifica se o cliente foi encontrado
-        if (customerFromDatabase == null)
+        var customerToReturn = await handler.HandleCustomerWithAddresses(getCustomerWithAddressesQuery);
+
+        if (customerToReturn == null)
         {
-            return NotFound(); // Retorna uma resposta HTTP 404 Not Found caso o cliente não seja encontrado
+            return NotFound();
         }
 
-        // Mapeia o cliente para o CustomerWithAddressesDto
-        var customerToReturn = _mapper.Map<CustomerWithAddressesDto>(customerFromDatabase);
-
-        // Retorna uma resposta HTTP 200 OK com o cliente e seus endereços
         return Ok(customerToReturn);
     }
 

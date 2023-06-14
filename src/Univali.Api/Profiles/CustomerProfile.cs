@@ -6,6 +6,7 @@ using Univali.Api.Features.Customers.Commands.UpdateCustomer;
 using Univali.Api.Features.Customers.Queries.GetAllCustomers;
 using Univali.Api.Features.Customers.Queries.GetCustomerCpf;
 using Univali.Api.Features.Customers.Queries.GetCustomerDetail;
+using Univali.Api.Features.Customers.Queries.GetCustomerWithAddresses;
 using Univali.Api.Models;
 
 namespace Univali.Api.Profiles
@@ -33,6 +34,8 @@ namespace Univali.Api.Profiles
             CreateMap<Customer, GetAllCustomersDto>();
 
             CreateMap<Customer, GetCustomerCpfDto>();
+
+            CreateMap<Customer, GetCustomerWithAddressesDto>();
 
             CreateMap<CreateCustomerCommand, Customer>();
             CreateMap<Customer, CreateCustomerDto>();

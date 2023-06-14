@@ -12,6 +12,7 @@ using Univali.Api.Features.Customers.Commands.UpdateCustomer;
 using Univali.Api.Features.Customers.Queries.GetAllCustomers;
 using Univali.Api.Features.Customers.Queries.GetCustomerCpf;
 using Univali.Api.Features.Customers.Queries.GetCustomerDetail;
+using Univali.Api.Features.Customers.Queries.GetCustomerWithAddresses;
 using Univali.Api.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,6 +36,8 @@ builder.Services.AddTransient<IGetCustomerDetailQueryHandler, GetCustomerDetailQ
 builder.Services.AddTransient<IGetCustomerCpfQueryHandler, GetCustomerCpfQueryHandler>();
 
 builder.Services.AddTransient<IGetAllCustomersQueryHandler, GetAllCustomersQueryHandler>();
+
+builder.Services.AddTransient<IGetCustomerWithAddressesQueryHandler, GetCustomerWithAddressesQueryHandler>();
 
 builder.Services.AddTransient<ICreateCustomerCommandHandler, CreateCustomerCommandHandler>();
 
