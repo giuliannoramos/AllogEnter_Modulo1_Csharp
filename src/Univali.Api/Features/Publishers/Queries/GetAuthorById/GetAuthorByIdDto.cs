@@ -3,7 +3,7 @@ namespace Univali.Api.Features.Publishers.Queries.GetAuthorById;
 
 public class GetAuthorByIdDto
 {
-    public int Id { get; set; }
+    public int AuthorId { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
 }

@@ -17,7 +17,7 @@ public class GetAuthorByIdQueryHandler : IRequestHandler<GetAuthorByIdQuery, Get
 
     public async Task<GetAuthorByIdDto> Handle(GetAuthorByIdQuery request, CancellationToken cancellationToken)
     {
-        var authorFromDatabase = await _publisherRepository.GetAuthorByIdAsync(request.Id);
+        var authorFromDatabase = await _publisherRepository.GetAuthorByIdAsync(request.AuthorId);
         return _mapper.Map<GetAuthorByIdDto>(authorFromDatabase);
     }
 }

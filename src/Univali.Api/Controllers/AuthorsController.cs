@@ -12,11 +12,11 @@ namespace Univali.Api.Controllers;
 [Route("api/authors")]
 [Authorize]
 public class AuthorsController : MainController
-{   
+{
     private readonly IMediator _mediator;
 
     public AuthorsController(IMediator mediator)
-    {       
+    {
         _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
     }
 
@@ -30,7 +30,7 @@ public class AuthorsController : MainController
         return CreatedAtRoute
         (
             "GetAuthorById",
-            new { authorId = authorToReturn.Id },
+            new { authorId = authorToReturn.AuthorId },
             authorToReturn
         );
     }
@@ -39,7 +39,7 @@ public class AuthorsController : MainController
     public async Task<ActionResult<AuthorDto>> GetAuthorById(
     int authorId)
     {
-        var getAuthorByIdQuery = new GetAuthorByIdQuery { Id = authorId };
+        var getAuthorByIdQuery = new GetAuthorByIdQuery { AuthorId = authorId };
 
         var authorToReturn = await _mediator.Send(getAuthorByIdQuery);
 
