@@ -11,7 +11,7 @@ public class PublisherRepository : IPublisherRepository
     public PublisherRepository(PublisherContext publisherContext)
     {
         _context = publisherContext;
-    }    
+    }
 
     public void AddAuthor(Author author)
     {
@@ -26,10 +26,10 @@ public class PublisherRepository : IPublisherRepository
     public void DeleteAuthor(Author author)
     {
         _context.Authors.Remove(author);
-    }    
+    }
 
     public async Task<bool> SaveChangesAsync()
     {
         return (await _context.SaveChangesAsync() > 0);
-    }
+    }    
 }

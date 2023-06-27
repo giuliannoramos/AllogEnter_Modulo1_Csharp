@@ -8,7 +8,7 @@ public interface IPublisherRepository
 
     Task<Author?> GetAuthorByIdAsync(int authorId);
 
-    void DeleteAuthor(Author author);   
+    void DeleteAuthor(Author author);
 
     Task<bool> SaveChangesAsync(); 
 }

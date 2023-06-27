@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Univali.Api.Features.Publishers.Commands.CreateAuthor;
+using Univali.Api.Features.Publishers.Commands.DeleteAuthor;
 using Univali.Api.Features.Publishers.Queries.GetAuthorById;
 using Univali.Api.Models;
 
@@ -48,21 +49,16 @@ public class AuthorsController : MainController
         return Ok(authorToReturn);
     }
 
-    // [HttpDelete("{id}")]
-    // public async Task<IActionResult> DeleteAuthor(int id, [FromServices] IDeleteAuthorCommandHandler handler)
-    // {
-    //     var deleteAuthorCommand = new DeleteAuthorCommand { Id = id };
+    [HttpDelete("{authorId}")]
+    public async Task<IActionResult> DeleteAuthor(int authorId)
+    {
+        var deleteAuthorCommand = new DeleteAuthorCommand { AuthorId = authorId };
 
-    //     try
-    //     {
-    //         await handler.HandleDelete(deleteAuthorCommand);
-    //     }
-    //     catch (InvalidOperationException)
-    //     {
-    //         return NotFound(); // Autor não encontrado
-    //     }
+        var result = await _mediator.Send(deleteAuthorCommand);
 
-    //     return NoContent(); // Autor excluído com sucesso
-    // }
+        if (!result) return NotFound(); // Autor não encontrado
+
+        return NoContent(); // Autor excluído com sucesso
+    }
 
 }
