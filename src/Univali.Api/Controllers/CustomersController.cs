@@ -1,4 +1,6 @@
 using AutoMapper;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -22,6 +24,7 @@ namespace Univali.Api.Controllers;
 
 [ApiController]
 [Route("api/customers")]
+[Authorize]
 public class CustomersController : MainController
 {
     // Injeção de Dependência: Os parâmetros 'data' e 'mapper' são fornecidos externamente para o construtor da classe CustomersController.
@@ -30,26 +33,21 @@ public class CustomersController : MainController
     private readonly IMapper _mapper;
     private readonly CustomerContext _context;
     private readonly ICustomerRepository _customerRepository;
+    private readonly IMediator _mediator;
 
-    public CustomersController(Data data, IMapper mapper, CustomerContext context, ICustomerRepository customerRepository)
+    public CustomersController(Data data, IMapper mapper, CustomerContext context,
+        ICustomerRepository customerRepository, IMediator mediator)
     {
-        // Armazena uma referência aos dados fornecidos externamente, como um banco de dados.
         _data = data ?? throw new ArgumentNullException(nameof(data));
-
-        // Armazena uma referência ao objeto responsável por mapear entre diferentes tipos de objetos, como mapear Customer para CustomerDto
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-
         _context = context ?? throw new ArgumentNullException(nameof(context));
-
         _customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(customerRepository));
+        _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CustomerDto>>> GetCustomers([FromServices] IGetAllCustomersQueryHandler handler)
     {
-        // Cria uma nova instância do objeto GetCustomerDetailQuery sem especificar um ID
-        var getCustomerDetailQuery = new GetCustomerDetailQuery();
-
         // Chama o manipulador (handler) responsável por lidar com a consulta GetCustomerDetailQuery
         // e aguarda o resultado (await) da execução assíncrona.
         var customersToReturn = await handler.HandleGetAll();
@@ -143,46 +141,36 @@ public class CustomersController : MainController
     }
 
     [HttpPatch("{id}")]
-    public async Task<ActionResult> PartiallyUpdateCustomer(int id, [FromBody] PatchCustomerCommand patchCommand, [FromServices] IPatchCustomerCommandHandler handler)
-    {      
+    public async Task<ActionResult> PartiallyUpdateCustomer([FromBody] JsonPatchDocument<CustomerForPatchDto> patchDocument, [FromRoute] int id)
+    {
+        // Encontra o cliente no banco de dados com base no ID fornecido
+        var customerFromDatabase = await _customerRepository.GetCustomerByIdAsync(id);
 
-        await handler.HandlePatch(patchCommand);
+        // Verifica se o cliente existe
+        if (customerFromDatabase == null)
+        {
+            return NotFound();
+        }
+
+        // Mapeia o cliente do banco de dados para o tipo CustomerForPatchDto usando o AutoMapper
+        var customerToPatch = _mapper.Map<CustomerForPatchDto>(customerFromDatabase);
+
+        // Aplica as alterações parciais do JsonPatchDocument ao objeto customerToPatch
+        patchDocument.ApplyTo(customerToPatch, ModelState);
+
+        if (!TryValidateModel(customerToPatch))
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        // Mapeia as alterações aplicadas de volta para o objeto customerFromDatabase
+        _mapper.Map(customerToPatch, customerFromDatabase);
+
+        _context.SaveChanges();
 
         // Retorna um resultado de "Sem conteúdo" (204) para indicar que a atualização parcial foi concluída com sucesso
         return NoContent();
     }
-
-    //  [HttpPatch("{id}")]
-    // public async Task<ActionResult> PartiallyUpdateCustomer([FromBody] JsonPatchDocument<CustomerForPatchDto> patchDocument, [FromRoute] int id)
-    // {
-    //     // Encontra o cliente no banco de dados com base no ID fornecido
-    //     var customerFromDatabase = await _customerRepository.GetCustomerByIdAsync(id);
-
-    //     // Verifica se o cliente existe
-    //     if (customerFromDatabase == null)
-    //     {
-    //         return NotFound();
-    //     }
-
-    //     // Mapeia o cliente do banco de dados para o tipo CustomerForPatchDto usando o AutoMapper
-    //     var customerToPatch = _mapper.Map<CustomerForPatchDto>(customerFromDatabase);
-
-    //     // Aplica as alterações parciais do JsonPatchDocument ao objeto customerToPatch
-    //     patchDocument.ApplyTo(customerToPatch, ModelState);
-
-    //     if (!TryValidateModel(customerToPatch))
-    //     {
-    //         return ValidationProblem(ModelState);
-    //     }
-
-    //     // Mapeia as alterações aplicadas de volta para o objeto customerFromDatabase
-    //     _mapper.Map(customerToPatch, customerFromDatabase);
-
-    //     _context.SaveChanges();
-
-    //     // Retorna um resultado de "Sem conteúdo" (204) para indicar que a atualização parcial foi concluída com sucesso
-    //     return NoContent();
-    // }
 
     [HttpGet("with-address")]
     public async Task<ActionResult<IEnumerable<CustomerWithAddressesDto>>> GetCustomersWithAddresses()

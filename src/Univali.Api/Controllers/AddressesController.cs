@@ -5,6 +5,7 @@ using Univali.Api.Models;
 using Univali.Api.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Univali.Api.Repositories;
+using Univali.Api.Features.Customers.Queries.GetAddresses;
 
 namespace Univali.Api.Controllers;
 
@@ -134,21 +135,32 @@ public class AddressesController : MainController
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<AddressDto>>> GetAddresses(int customerId)
+    // public async Task<ActionResult<IEnumerable<AddressDto>>> GetAddresses(int customerId)
+    public async Task<ActionResult<List<AddressDto>>> GetAddresses([FromServices] IGetAddressesQueryHandler handler)
     {
-        // Procurar o cliente com o ID fornecido
-        var customerFromDatabase = await _customerRepository.GetCustomerWithAddressesByIdAsync(customerId);
+        // // Procurar o cliente com o ID fornecido
+        // var customerFromDatabase = await _customerRepository.GetCustomerWithAddressesByIdAsync(customerId);
 
-        // Verificar se o cliente não foi encontrado
-        if (customerFromDatabase == null)
+        // // Verificar se o cliente não foi encontrado
+        // if (customerFromDatabase == null)
+        // {
+        //     return NotFound(); // Retorna o status HTTP 404 Not Found se o cliente não foi encontrado
+        // }
+
+        // // Mapear os endereços do cliente para o formato AddressDto
+        // var addressesToReturn = _mapper.Map<List<AddressDto>>(customerFromDatabase.Addresses);
+
+        // return Ok(addressesToReturn); // Retorna a lista de endereços com o status HTTP 200 OK
+
+        var getAddressesQuery = new GetAddressesQuery();
+        var addressesToReturn = await handler.HandleGetAddresses(getAddressesQuery);
+
+        if (addressesToReturn == null || addressesToReturn.Count == 0)
         {
-            return NotFound(); // Retorna o status HTTP 404 Not Found se o cliente não foi encontrado
+            return NotFound();
         }
 
-        // Mapear os endereços do cliente para o formato AddressDto
-        var addressesToReturn = _mapper.Map<List<AddressDto>>(customerFromDatabase.Addresses);
-
-        return Ok(addressesToReturn); // Retorna a lista de endereços com o status HTTP 200 OK
+        return Ok(addressesToReturn);
     }
 
 }
