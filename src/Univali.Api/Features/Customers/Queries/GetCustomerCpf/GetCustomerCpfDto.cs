@@ -1,6 +1,7 @@
-namespace Univali.Api.Dtos;
+namespace Univali.Api.Features.Customers.Queries.GetCustomerCpf;
 
-public class CustomerReturnDto
+
+public class GetCustomerCpfDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;

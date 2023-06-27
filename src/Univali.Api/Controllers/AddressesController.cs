@@ -1,278 +1,166 @@
-using Microsoft.AspNetCore.JsonPatch;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Univali.Api.Dtos;
 using Univali.Api.Entities;
+using Univali.Api.Models;
+using Univali.Api.DbContexts;
+using Microsoft.EntityFrameworkCore;
+using Univali.Api.Repositories;
+using Univali.Api.Features.Customers.Queries.GetAddresses;
 
-namespace Univali.Api.Controller;
+namespace Univali.Api.Controllers;
 
 [ApiController]
-[Route("api/addresses")]
-
-public class AddressesController : ControllerBase
+[Route("api/customers/{customerId}/addresses")]
+public class AddressesController : MainController
 {
-    /// <summary>
-    /// Obtém a lista de todos os endereços cadastrados juntamente com os nomes dos clientes.
-    /// </summary>
-    /// <returns>Uma lista de endereços com os nomes dos clientes.</returns>
-    [HttpGet]
-    public IActionResult GetAllAddresses()
+    // Injeção de Dependência: Os parâmetros 'data' e 'mapper' são fornecidos externamente para o construtor da classe CustomersController.
+    // Isso permite que as dependências necessárias sejam injetadas na classe em vez de a própria classe criar essas dependências.
+    // Injeção de Dependência: Os parâmetros 'data' e 'mapper' são fornecidos externamente para o construtor da classe CustomersController.
+    // Isso permite que as dependências necessárias sejam injetadas na classe em vez de a própria classe criar essas dependências.
+    private readonly Data _data;
+    private readonly IMapper _mapper;
+    private readonly CustomerContext _context;
+    private readonly ICustomerRepository _customerRepository;
+
+    public AddressesController(Data data, IMapper mapper, CustomerContext context, ICustomerRepository customerRepository)
     {
-        // Obtém a lista de endereços
-        var addresses = Data.Instance.Addresses;
+        // Armazena uma referência aos dados fornecidos externamente, como um banco de dados.
+        _data = data ?? throw new ArgumentNullException(nameof(data));
 
-        // Cria uma lista para armazenar os endereços com nomes de clientes
-        var addressesWithNames = new List<AddressReturnDto>();
+        // Armazena uma referência ao objeto responsável por mapear entre diferentes tipos de objetos, como mapear Customer para CustomerDto
+        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
 
-        // Percorre por cada endereço na lista de endereços 
-        foreach (var address in addresses)
-        {
-            // Procura o cliente que possui o mesmo ID do cliente associado ao endereço atual
-            var customer = Data.Instance.Customers.FirstOrDefault(c => c.Id == address.CustomerId);
+        _context = context ?? throw new ArgumentNullException(nameof(_context));
 
-            // Retorna NotFound se o cliente não foi encontrado
-            if (customer == null)
-            {
-                return NotFound();
-            }
-
-            // Adiciona o endereço com o nome do cliente à lista
-            addressesWithNames.Add(new AddressReturnDto
-            {
-                Id = address.Id,
-                Street = address.Street,
-                City = address.City,
-                State = address.State,
-                CustomerId = customer.Id,
-                CustomerName = customer.Name
-            });
-        }
-
-        return Ok(addressesWithNames);
+        _customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(context));
     }
 
-
-    /// <summary>
-    /// Obtém um endereço específico com base no ID.
-    /// </summary>
-    /// <param name="addressId">O ID do endereço.</param>
-    /// <returns>O endereço correspondente ao ID fornecido.</returns>
-    [HttpGet("{addressId}", Name = "GetAddressById")]
-    public IActionResult GetAddressById(int addressId)
+    [HttpGet("{addressId}")]
+    public async Task<ActionResult<AddressDto>> GetAddress(int customerId, int addressId)
     {
-        // Obtém o endereço com base no ID fornecido
-        var address = Data.Instance.Addresses.FirstOrDefault(a => a.Id == addressId);
+        var customerFromDatabase = await _customerRepository.GetCustomerWithAddressesByIdAsync(customerId);
 
-        // Verifica se o endereço não foi encontrado
-        if (address == null)
+        if (customerFromDatabase == null)
         {
             return NotFound();
         }
 
-        // Procura o cliente que possui o mesmo ID do cliente associado ao endereço atual
-        var customer = Data.Instance.Customers.FirstOrDefault(c => c.Id == address.CustomerId);
+        var addressToReturn = await _customerRepository.GetAddressAsync(addressId);
 
-        // Retorna NotFound se o cliente não foi encontrado
-        if (customer == null)
+        if (addressToReturn == null)
         {
             return NotFound();
         }
 
-        // Cria um objeto CustomerAddressDto com o nome do cliente e as informações do endereço atual
-        var addressWithName = new AddressReturnDto
-        {
-            Id = address.Id,
-            Street = address.Street,
-            City = address.City,
-            State = address.State,
-            CustomerId = customer.Id,
-            CustomerName = customer.Name
-        };
+        var addressDto = _mapper.Map<AddressDto>(addressToReturn);
 
-        return Ok(addressWithName);
+        return Ok(addressDto);
     }
 
-
-    /// <summary>
-    /// Obtém todos os endereços de um cliente com base no ID do cliente.
-    /// </summary>
-    /// <param name="customerId">O ID do cliente.</param>
-    /// <returns>Uma lista de endereços associados ao cliente.</returns>
-    [HttpGet("{customerId}/addresses")]
-    public IActionResult GetAddressesByCustomerId(int customerId)
-    {
-        // Procura o cliente com base no ID fornecido
-        var customer = Data.Instance.Customers.FirstOrDefault(c => c.Id == customerId);
-        if (customer == null)
-        {
-            return NotFound();
-        }
-
-        // Obtém todos os endereços associados ao cliente
-        var addresses = Data.Instance.Addresses.Where(a => a.CustomerId == customerId);
-
-        // Retorna NotFound se nenhum endereço foi encontrado para o cliente
-        if (!addresses.Any())
-        {
-            return NotFound();
-        }
-
-        // Cria uma lista de objetos AddressReturnDto com as informações dos endereços
-        var addressesWithName = addresses.Select(address => new AddressReturnDto
-        {
-            Id = address.Id,
-            Street = address.Street,
-            City = address.City,
-            State = address.State,
-            CustomerId = customer.Id,
-            CustomerName = customer.Name
-        }).ToList();
-
-        return Ok(addressesWithName);
-    }
-
-
-    /// <summary>
-    /// Cria um novo endereço.
-    /// </summary>
-    /// <param name="addressDto">O objeto contendo as informações do novo endereço.</param>
-    /// <returns>Um IActionResult indicando o resultado da criação.</returns>
     [HttpPost]
-    public IActionResult CreateAddress(AddressCreateDto addressCreateDto)
+    public async Task<ActionResult<AddressDto>> CreateAddress(int customerId, [FromBody] AddressForCreationDto addressForCreationDto)
     {
-        // Verifica se o cliente associado ao endereço existe
-        var customer = Data.Instance.Customers.FirstOrDefault(c => c.Id == addressCreateDto.CustomerId);
+        // Procura o cliente com o ID fornecido
+        var customerFromDataBase = await _customerRepository.GetCustomerByIdAsync(customerId);
 
-        // Retorna NotFound se o cliente não foi encontrado
-        if (customer == null)
+        // Verifica se o cliente não foi encontrado
+        if (customerFromDataBase == null)
         {
             return NotFound();
         }
 
-        // Cria um novo objeto endereço com as informações fornecidas
-        var address = new Address
-        {
-            Id = Data.Instance.GenerateAddressId(),
-            CustomerId = addressCreateDto.CustomerId,
-            Street = addressCreateDto.Street,
-            City = addressCreateDto.City,
-            State = addressCreateDto.State
-        };
+        // Cria uma nova entidade de endereço
+        var addressEntity = _mapper.Map<Address>(addressForCreationDto);
 
-        // Adiciona o novo endereço à lista de endereços
-        Data.Instance.AddAddress(address);
+        // Adiciona o novo endereço à lista de endereços do cliente
+        customerFromDataBase.Addresses.Add(addressEntity);
+        _context.SaveChanges();
 
-        // Retorna um objeto CustomerAddressDto com o nome do cliente e as informações do novo endereço
-        var addressReturnDto = new AddressReturnDto
-        {
-            Id = address.Id,
-            Street = address.Street,
-            City = address.City,
-            State = address.State,
-            CustomerId = customer.Id,
-            CustomerName = customer.Name
-        };
+        // Mapeia os atributos do novo endereço para o DTO de resposta
+        var addressToReturn = _mapper.Map<AddressDto>(addressEntity);
 
-        return CreatedAtAction("GetAddressById", new { addressId = address.Id }, addressReturnDto);
+        return CreatedAtAction("GetAddress", new { customerId = customerId, addressId = addressToReturn.Id }, addressToReturn);
     }
 
-
-    /// <summary>
-    /// Atualiza um endereço específico com base no ID.
-    /// </summary>
-    /// <param name="addressId">O ID do endereço a ser atualizado.</param>
-    /// <param name="updatedAddress">O objeto contendo as informações atualizadas do endereço.</param>
-    /// <returns>Um IActionResult indicando o resultado da atualização.</returns>
     [HttpPut("{addressId}")]
-    public IActionResult UpdateAddressById(int addressId, AddressCreateDto addressCreateDto)
+    public async Task<ActionResult> UpdateAddress(int customerId, int addressId, AddressForUpdateDto addressForUpdateDto)
     {
-        // Obtém o endereço com base no ID fornecido
-        var address = Data.Instance.Addresses.FirstOrDefault(a => a.Id == addressId);
+        if (addressForUpdateDto.Id != addressId) return BadRequest();
 
-        // Verifica se o endereço não foi encontrado
-        if (address == null)
+        // Procura o cliente com o ID fornecido
+        var customerFromDataBase = await _customerRepository.GetCustomerByIdAsync(customerId);
+
+        // Verifica se o cliente não foi encontrado
+        if (customerFromDataBase == null)
         {
             return NotFound();
         }
 
-        // Procura o cliente que possui o mesmo ID do cliente associado ao endereço atual
-        var customer = Data.Instance.Customers.FirstOrDefault(c => c.Id == address.CustomerId);
+        var addressFromDatabase = await _customerRepository.GetAddressAsync(addressId);
 
-        // Retorna NotFound se o cliente não foi encontrado
-        if (customer == null)
+        if (addressFromDatabase == null)
         {
             return NotFound();
         }
 
-        // Atualiza as informações do endereço com as informações fornecidas
-        address.Street = addressCreateDto.Street;
-        address.City = addressCreateDto.City;
-        address.State = addressCreateDto.State;
+        _mapper.Map(addressForUpdateDto, addressFromDatabase);
+        _context.SaveChanges();
 
-        // Retorna um código de status HTTP 204 (No Content) para indicar sucesso na atualização sem retornar dados adicionais
         return NoContent();
     }
 
-
-    /// <summary>
-    /// Exclui um endereço específico com base no ID.
-    /// </summary>
-    /// <param name="addressId">O ID do endereço a ser excluído.</param>
-    /// <returns>Um IActionResult indicando o resultado da exclusão.</returns>
     [HttpDelete("{addressId}")]
-    public IActionResult DeleteAddressById(int addressId)
+    public async Task<ActionResult> DeleteAddress(int customerId, int addressId)
     {
-        // Obtém o endereço com base no ID fornecido
-        var address = Data.Instance.Addresses.FirstOrDefault(a => a.Id == addressId);
+        var customerFromDatabase = await _customerRepository.GetCustomerWithAddressesByIdAsync(customerId);
 
-        // Verifica se o endereço não foi encontrado
-        if (address == null)
+        if (customerFromDatabase == null)
         {
             return NotFound();
         }
 
-        // Remove o endereço da lista de endereços
-        Data.Instance.Addresses.Remove(address);
+        var addressToDelete = await _customerRepository.GetAddressAsync(addressId);
 
+        if (addressToDelete == null)
+        {
+            return NotFound();
+        }
+
+        // Remover o endereço da lista de endereços do cliente
+        customerFromDatabase.Addresses.Remove(addressToDelete);
+        _context.SaveChanges();
+
+        // Retornar uma resposta HTTP 204 No Content para indicar que o endereço foi removido com sucesso
         return NoContent();
     }
 
-    /// <summary>
-    /// Método para atualizar parcialmente um Endereço.
-    /// </summary>
-    /// <param name="patchDocument">Documento JSON com as alterações a serem aplicadas no endereço.</param>
-    /// <param name="id">O ID do endereço a ser atualizado.</param>
-    /// <returns>Um código de status HTTP indicando o sucesso ou fracasso da operação.</returns>
-    [HttpPatch("{id}")]
-    public ActionResult PartiallyUpdateAddress(
-    [FromBody] JsonPatchDocument<AddressCreateDto> patchDocument,
-    [FromRoute] int id)
+    [HttpGet]
+    // public async Task<ActionResult<IEnumerable<AddressDto>>> GetAddresses(int customerId)
+    public async Task<ActionResult<List<AddressDto>>> GetAddresses([FromServices] IGetAddressesQueryHandler handler)
     {
-        // Obter o cliente do banco de dados com base no ID fornecido.
-        var addressFromDataBase = Data.Instance.Addresses
-            .FirstOrDefault(address => address.Id == id);
+        // // Procurar o cliente com o ID fornecido
+        // var customerFromDatabase = await _customerRepository.GetCustomerWithAddressesByIdAsync(customerId);
 
-        // Verificar se o cliente foi encontrado.
-        if (addressFromDataBase == null)
-            return NotFound();
+        // // Verificar se o cliente não foi encontrado
+        // if (customerFromDatabase == null)
+        // {
+        //     return NotFound(); // Retorna o status HTTP 404 Not Found se o cliente não foi encontrado
+        // }
 
-        // Criar um objeto CustomerCreateDto com as propriedades do cliente a serem atualizadas.
-        var addressToPatch = new AddressCreateDto
+        // // Mapear os endereços do cliente para o formato AddressDto
+        // var addressesToReturn = _mapper.Map<List<AddressDto>>(customerFromDatabase.Addresses);
+
+        // return Ok(addressesToReturn); // Retorna a lista de endereços com o status HTTP 200 OK
+
+        var getAddressesQuery = new GetAddressesQuery();
+        var addressesToReturn = await handler.HandleGetAddresses(getAddressesQuery);
+
+        if (addressesToReturn == null || addressesToReturn.Count == 0)
         {
-            Street = addressFromDataBase.Street,
-            City = addressFromDataBase.City,
-            State = addressFromDataBase.State
-        };
+            return NotFound();
+        }
 
-        // Aplicar as alterações do patchDocument no customerToPatch.
-        patchDocument.ApplyTo(addressToPatch);
-
-        // Atualizar as propriedades do cliente no banco de dados com base nas alterações aplicadas.
-        addressFromDataBase.Street = addressToPatch.Street;
-        addressFromDataBase.City = addressToPatch.City;
-        addressFromDataBase.State = addressToPatch.State;
-
-        // Retornar um resultado sem conteúdo para indicar que a atualização parcial foi bem-sucedida.
-        return NoContent();
+        return Ok(addressesToReturn);
     }
 
 }
