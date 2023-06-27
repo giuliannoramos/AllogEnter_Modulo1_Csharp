@@ -1,4 +1,4 @@
-namespace Univali.Api.Features.Publisher.Queries.GetAuthorById;
+namespace Univali.Api.Features.Publishers.Queries.GetAuthorById;
 
 
 public class GetAuthorByIdDto

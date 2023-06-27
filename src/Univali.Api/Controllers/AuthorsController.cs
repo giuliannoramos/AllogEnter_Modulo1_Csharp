@@ -2,8 +2,8 @@ using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Univali.Api.Features.Authors.Commands.CreateAuthor;
-using Univali.Api.Features.Publisher.Queries.GetAuthorById;
+using Univali.Api.Features.Publishers.Commands.CreateAuthor;
+using Univali.Api.Features.Publishers.Queries.GetAuthorById;
 using Univali.Api.Models;
 
 namespace Univali.Api.Controllers;

@@ -3,7 +3,7 @@ using MediatR;
 using Univali.Api.Entities;
 using Univali.Api.Repositories;
 
-namespace Univali.Api.Features.Authors.Commands.CreateAuthor;
+namespace Univali.Api.Features.Publishers.Commands.CreateAuthor;
 
 // O primeiro parâmetro é o tipo da mensagem
 // O segundo parâmetro é o tipo que se espera receber.

@@ -2,7 +2,7 @@ using AutoMapper;
 using MediatR;
 using Univali.Api.Repositories;
 
-namespace Univali.Api.Features.Publisher.Queries.GetAuthorById;
+namespace Univali.Api.Features.Publishers.Queries.GetAuthorById;
 
 public class GetAuthorByIdQueryHandler : IRequestHandler<GetAuthorByIdQuery, GetAuthorByIdDto>
 {

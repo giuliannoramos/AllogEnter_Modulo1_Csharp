@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using MediatR;
 using Univali.Api.ValidationAttributes;
 
-namespace Univali.Api.Features.Authors.Commands.CreateAuthor;
+namespace Univali.Api.Features.Publishers.Commands.CreateAuthor;
 
 // IRequest<> transforma a classe em uma Mensagem
 // CreateCustomerDto é o tipo que este comando espera receber de volta

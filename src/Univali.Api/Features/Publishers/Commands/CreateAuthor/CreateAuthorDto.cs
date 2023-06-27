@@ -1,4 +1,4 @@
-namespace Univali.Api.Features.Authors.Commands.CreateAuthor;
+namespace Univali.Api.Features.Publishers.Commands.CreateAuthor;
 
 public class CreateAuthorDto
 {
