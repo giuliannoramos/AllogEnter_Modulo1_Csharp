@@ -6,4 +6,5 @@ public class Publisher
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string Cpf { get; set; } = string.Empty;
+    public List<Course> Courses { get; set; } = new();
 }

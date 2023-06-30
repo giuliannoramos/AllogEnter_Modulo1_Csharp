@@ -6,6 +6,7 @@ using Univali.Api.Features.Publishers.Commands.CreatePublisher;
 using Univali.Api.Features.Publishers.Queries.GetPublisherById;
 using Univali.Api.Features.Publishers.Commands.DeletePublisher;
 using Univali.Api.Features.Publishers.Commands.UpdatePublisher;
+using Univali.Api.Features.Publishers.Queries.GetPublisherByIdWithCourses;
 
 namespace Univali.Api.Controllers;
 
@@ -66,4 +67,14 @@ public class PublishersController : MainController
 
         return NoContent(); // Excluído com sucesso
     }
+
+    [HttpGet("{publisherId}/with-courses")]
+    public async Task<ActionResult<PublisherWithCoursesDto>> GetPublisherByIdWithCourses(int publisherId)
+    {
+        var getPublisherByIdWithCoursesQuery = new GetPublisherByIdWithCoursesQuery { PublisherId = publisherId };
+        var courseToReturn = await _mediator.Send(getPublisherByIdWithCoursesQuery);
+        if (courseToReturn == null) return NotFound();
+        return Ok(courseToReturn);
+    }
+
 }

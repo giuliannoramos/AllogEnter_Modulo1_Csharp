@@ -97,12 +97,12 @@ public class PublisherRepository : IPublisherRepository
         return await _context.Publishers.FirstOrDefaultAsync(p => p.PublisherId == publisherId);
     }
 
-    // public async Task<Publisher?> GetPublisherByIdWithCoursesAsync(int publisherId)
-    // {
-    //     return await _context.Publishers
-    //         .Include(p => p.)
-    //         .FirstOrDefaultAsync(a => a.AuthorId == authorId);
-    // }
+    public async Task<Publisher?> GetPublisherByIdWithCoursesAsync(int publisherId)
+    {
+        return await _context.Publishers
+            .Include(c => c.Courses)
+            .FirstAsync(p => p.PublisherId == publisherId);
+    }
 
     //--------------------Global--------------------//
     public async Task<bool> SaveChangesAsync()

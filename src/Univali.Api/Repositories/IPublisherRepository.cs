@@ -24,7 +24,7 @@ public interface IPublisherRepository
     void UpdatePublisher(Publisher publisher);
     void DeletePublisher(Publisher publisher);
     Task<Publisher?> GetPublisherByIdAsync(int publisherId);
-    // Task<Publisher?> GetPublisherByIdWithCoursesAsync(int publisherId);
+    Task<Publisher?> GetPublisherByIdWithCoursesAsync(int publisherId);
 
     //--------------------Global--------------------//
     Task<bool> SaveChangesAsync();
