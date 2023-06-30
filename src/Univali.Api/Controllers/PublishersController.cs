@@ -4,6 +4,8 @@ using Univali.Api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Univali.Api.Features.Publishers.Commands.CreatePublisher;
 using Univali.Api.Features.Publishers.Queries.GetPublisherById;
+using Univali.Api.Features.Publishers.Commands.DeletePublisher;
+using Univali.Api.Features.Publishers.Commands.UpdatePublisher;
 
 namespace Univali.Api.Controllers;
 
@@ -31,7 +33,7 @@ public class PublishersController : MainController
         );
     }
 
-    [HttpGet("{PublisherId}", Name = "GetPublisherById")]
+    [HttpGet("{publisherId}", Name = "GetPublisherById")]
     public async Task<ActionResult<PublisherDto>> GetPublisherById(int PublisherId)
     {
         var getPublisherByIdQuery = new GetPublisherByIdQuery { PublisherId = PublisherId };
@@ -41,5 +43,27 @@ public class PublishersController : MainController
         if (publisherToReturn == null) return NotFound();
 
         return Ok(publisherToReturn);
+    }
+
+    [HttpPut("{publisherId}")]
+    public async Task<ActionResult> UpdatePublisher(int publisherId, [FromBody] UpdatePublisherCommand updatePublisherCommand)
+    {
+        if (publisherId != updatePublisherCommand.PublisherId) BadRequest();
+
+        await _mediator.Send(updatePublisherCommand);
+
+        return NoContent();
+    }
+
+    [HttpDelete("{publisherId}")]
+    public async Task<IActionResult> DeletePublisher(int publisherId)
+    {
+        var deletePublisherCommand = new DeletePublisherCommand { PublisherId = publisherId };
+
+        var result = await _mediator.Send(deletePublisherCommand);
+
+        if (!result) return NotFound(); // Não encontrado
+
+        return NoContent(); // Excluído com sucesso
     }
 }

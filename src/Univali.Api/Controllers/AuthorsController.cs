@@ -5,6 +5,7 @@ using Univali.Api.Features.Publishers.Commands.CreateAuthor;
 using Univali.Api.Features.Publishers.Commands.DeleteAuthor;
 using Univali.Api.Features.Publishers.Commands.UpdateAuthor;
 using Univali.Api.Features.Publishers.Queries.GetAuthorById;
+using Univali.Api.Features.Publishers.Queries.GetAuthorByIdWithCourses;
 using Univali.Api.Models;
 
 namespace Univali.Api.Controllers;
@@ -67,4 +68,14 @@ public class AuthorsController : MainController
 
         return NoContent();
     }
+
+    [HttpGet("{authorId}/courses")]
+    public async Task<ActionResult<AuthorWithCoursesDto>> GetAuthorWithCourses(int authorId)
+    {
+        var getAuthorByIdWithCoursesQuery = new GetAuthorByIdWithCoursesQuery { AuthorId = authorId };
+        var authorToReturn = await _mediator.Send(getAuthorByIdWithCoursesQuery);
+        if (authorToReturn == null) return NotFound();
+        return Ok(authorToReturn);
+    }
+
 }

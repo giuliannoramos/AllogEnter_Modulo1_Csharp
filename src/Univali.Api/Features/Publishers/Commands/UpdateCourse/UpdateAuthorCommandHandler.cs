@@ -4,30 +4,30 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Univali.Api.Entities;
 using Univali.Api.Repositories;
 
-namespace Univali.Api.Features.Publishers.Commands.UpdateAuthor;
+namespace Univali.Api.Features.Publishers.Commands.UpdateCourse;
 
 
-public class UpdateAuthorCommandHandler : IRequestHandler<UpdateAuthorCommand>
+public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand>
 {
     private readonly IPublisherRepository _publisherRepository;
     private readonly IMapper _mapper;
 
-    public UpdateAuthorCommandHandler(IPublisherRepository publisherRepository, IMapper mapper)
+    public UpdateCourseCommandHandler(IPublisherRepository publisherRepository, IMapper mapper)
     {
         _publisherRepository = publisherRepository;
         _mapper = mapper;
     }
 
-    public async Task Handle(UpdateAuthorCommand request, CancellationToken cancellationToken)
+    public async Task Handle(UpdateCourseCommand request, CancellationToken cancellationToken)
     {
         // Obtém a entidade pelo ID
         // ?? é uma expressão para simplificar uma estrutura de if caso seja nulo, retornar not found
-        var authorEntity = await _publisherRepository.GetAuthorByIdAsync(request.AuthorId) ?? throw new InvalidOperationException("Author not found");
+        var courseEntity = await _publisherRepository.GetCourseByIdAsync(request.CourseId) ?? throw new InvalidOperationException("Course not found");
 
         // Mapeia as propriedades do comando de atualização para a entidade do autor
-        _mapper.Map(request, authorEntity);
+        _mapper.Map(request, courseEntity);
 
-        _publisherRepository.UpdateAuthor(authorEntity);
+        _publisherRepository.UpdateCourse(courseEntity);
 
         // Salva as alterações no repositório
         await _publisherRepository.SaveChangesAsync();

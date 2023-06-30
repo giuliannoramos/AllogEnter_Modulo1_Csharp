@@ -37,6 +37,12 @@ public class PublisherRepository : IPublisherRepository
         return await _context.Authors.FirstOrDefaultAsync(a => a.AuthorId == authorId);
     }
 
+    public async Task<Author?> GetAuthorByIdWithCoursesAsync(int authorId)
+    {
+        return await _context.Authors
+            .Include(a => a.Courses)
+            .FirstOrDefaultAsync(a => a.AuthorId == authorId);
+    }
     //--------------------Course--------------------//
     public void AddCourse(Course course)
     {
@@ -45,12 +51,12 @@ public class PublisherRepository : IPublisherRepository
 
     public void UpdateCourse(Course course)
     {
-        throw new NotImplementedException();
+        _context.Courses.Update(course);
     }
 
     public void DeleteCourse(Course course)
     {
-        throw new NotImplementedException();
+        _context.Courses.Remove(course);
     }
 
     public async Task<Course?> GetCourseByIdAsync(int courseId)
@@ -63,9 +69,11 @@ public class PublisherRepository : IPublisherRepository
         throw new NotImplementedException();
     }
 
-    public Task<Course?> GetCourseByIdWithAuthorsAsync(int courseId)
+    public async Task<Course?> GetCourseByIdWithAuthorsAsync(int courseId)
     {
-        throw new NotImplementedException();
+        return await _context.Courses
+            .Include(c => c.Authors)
+            .FirstOrDefaultAsync(c => c.CourseId == courseId);
     }
 
     //--------------------Publisher--------------------//
@@ -74,10 +82,27 @@ public class PublisherRepository : IPublisherRepository
         _context.Publishers.Add(publisher);
     }
 
+    public void UpdatePublisher(Publisher publisher)
+    {
+        _context.Publishers.Update(publisher);
+    }
+
+    public void DeletePublisher(Publisher publisher)
+    {
+        _context.Publishers.Remove(publisher);
+    }
+
     public async Task<Publisher?> GetPublisherByIdAsync(int publisherId)
     {
         return await _context.Publishers.FirstOrDefaultAsync(p => p.PublisherId == publisherId);
     }
+
+    // public async Task<Publisher?> GetPublisherByIdWithCoursesAsync(int publisherId)
+    // {
+    //     return await _context.Publishers
+    //         .Include(p => p.)
+    //         .FirstOrDefaultAsync(a => a.AuthorId == authorId);
+    // }
 
     //--------------------Global--------------------//
     public async Task<bool> SaveChangesAsync()

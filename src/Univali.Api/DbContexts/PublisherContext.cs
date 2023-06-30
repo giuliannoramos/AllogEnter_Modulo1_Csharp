@@ -51,5 +51,21 @@ public class PublisherContext : DbContext
         .Property(c => c.Description)
         .IsRequired(false);
 
+        var publisher = modelBuilder.Entity<Publisher>();
+
+        publisher
+        .Property(p => p.FirstName)
+        .HasMaxLength(30)
+        .IsRequired();
+
+        publisher
+        .Property(p => p.LastName)
+        .HasMaxLength(30)
+        .IsRequired();
+
+        publisher
+        .Property(p => p.Cpf)
+        .HasMaxLength(11)
+        .IsRequired();
     }
 }

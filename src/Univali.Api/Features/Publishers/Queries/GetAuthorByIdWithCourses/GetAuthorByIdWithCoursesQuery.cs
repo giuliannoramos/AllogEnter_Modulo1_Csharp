@@ -1,6 +1,8 @@
-namespace Univali.Api.Features.Publihser.Queries.GetAuthorByIdWithCourses;
+using MediatR;
 
-public class GetAuthorByIdWithCoursesQuery
+namespace Univali.Api.Features.Publishers.Queries.GetAuthorByIdWithCourses;
+
+public class GetAuthorByIdWithCoursesQuery : IRequest<GetAuthorByIdWithCoursesDto>
 {
     public int AuthorId { get; set; }
 }

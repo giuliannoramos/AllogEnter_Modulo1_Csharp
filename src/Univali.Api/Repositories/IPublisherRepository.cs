@@ -9,6 +9,7 @@ public interface IPublisherRepository
     void UpdateAuthor(Author author);
     void DeleteAuthor(Author author);
     Task<Author?> GetAuthorByIdAsync(int authorId);
+    Task<Author?> GetAuthorByIdWithCoursesAsync(int authorId);
 
     //--------------------Course--------------------//
     void AddCourse(Course course);
@@ -20,7 +21,10 @@ public interface IPublisherRepository
 
     //--------------------Publisher--------------------//
     void AddPublisher(Publisher publisher);
+    void UpdatePublisher(Publisher publisher);
+    void DeletePublisher(Publisher publisher);
     Task<Publisher?> GetPublisherByIdAsync(int publisherId);
+    // Task<Publisher?> GetPublisherByIdWithCoursesAsync(int publisherId);
 
     //--------------------Global--------------------//
     Task<bool> SaveChangesAsync();

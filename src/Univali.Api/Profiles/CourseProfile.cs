@@ -1,7 +1,9 @@
 using AutoMapper;
 using Univali.Api.Entities;
 using Univali.Api.Features.Publishers.Commands.CreateCourse;
+using Univali.Api.Features.Publishers.Commands.UpdateCourse;
 using Univali.Api.Features.Publishers.Queries.GetCourseById;
+using Univali.Api.Features.Publishers.Queries.GetCourseByIdWithAuthors;
 using Univali.Api.Models;
 
 namespace Univali.Api.Profiles
@@ -10,16 +12,17 @@ namespace Univali.Api.Profiles
     {
         public CourseProfile()
         {
-            CreateMap<CreateCourseCommand, Course>()
-            .ForMember(dest => dest.Authors, opt => opt.MapFrom(source => source.Authors));
+            CreateMap<CreateCourseCommand, Course>();
 
-            CreateMap<Course, CreateCourseDto>()
-            .ForMember(dest => dest.Authors, opt => opt.MapFrom(source => source.Authors));
-
-            CreateMap<Author, AuthorDto>();
-            CreateMap<AuthorDto, Author>();
+            CreateMap<Course, CreateCourseDto>();
 
             CreateMap<Course, GetCourseByIdDto>();
+
+            CreateMap<UpdateCourseCommand, Course>();
+
+            CreateMap<Course, GetCourseByIdWithAuthorsDto>();
+            
+            CreateMap<Author, AuthorDto>().ReverseMap();
         }
     }
 }
