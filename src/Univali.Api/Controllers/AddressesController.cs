@@ -3,14 +3,15 @@ using Microsoft.AspNetCore.Mvc;
 using Univali.Api.Entities;
 using Univali.Api.Models;
 using Univali.Api.DbContexts;
-using Microsoft.EntityFrameworkCore;
 using Univali.Api.Repositories;
 using Univali.Api.Features.Customers.Queries.GetAddresses;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Univali.Api.Controllers;
 
 [ApiController]
 [Route("api/customers/{customerId}/addresses")]
+[Authorize] //Quando isso é habilitado os métodos precisam de autenticação
 public class AddressesController : MainController
 {
     // Injeção de Dependência: Os parâmetros 'data' e 'mapper' são fornecidos externamente para o construtor da classe CustomersController.

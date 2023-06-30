@@ -11,8 +11,8 @@ public class GetAuthorByIdQueryHandler : IRequestHandler<GetAuthorByIdQuery, Get
 
     public GetAuthorByIdQueryHandler(IPublisherRepository publisherRepository, IMapper mapper)
     {
-        _publisherRepository = publisherRepository;
-        _mapper = mapper;
+        _publisherRepository = publisherRepository ?? throw new ArgumentNullException(nameof(publisherRepository));
+        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
     public async Task<GetAuthorByIdDto> Handle(GetAuthorByIdQuery request, CancellationToken cancellationToken)

@@ -18,14 +18,8 @@ namespace Univali.Api.Features.Customers.Commands.UpdateCustomer
         public async Task HandleUpdate(UpdateCustomerCommand request)
         {
             // Obtém a entidade do cliente pelo ID
-            var customerEntity = await _customerRepository.GetCustomerByIdAsync(request.Id);
-
-            // Verifica se o cliente foi encontrado
-            if (customerEntity == null)
-            {
-                // Caso o cliente não seja encontrado, lança uma exceção indicando que o cliente não foi encontrado
-                throw new InvalidOperationException("Customer not found");
-            }
+            // ?? é uma expressão para simplificar uma estrutura de if caso customer seja nulo, retornar o not found
+            var customerEntity = await _customerRepository.GetCustomerByIdAsync(request.Id) ?? throw new InvalidOperationException("Customer not found");
 
             // Mapeia as propriedades do comando de atualização para a entidade do cliente
             _mapper.Map(request, customerEntity);

@@ -1,9 +1,9 @@
-using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Univali.Api.Features.Publishers.Commands.CreateAuthor;
 using Univali.Api.Features.Publishers.Commands.DeleteAuthor;
+using Univali.Api.Features.Publishers.Commands.UpdateAuthor;
 using Univali.Api.Features.Publishers.Queries.GetAuthorById;
 using Univali.Api.Models;
 
@@ -11,7 +11,7 @@ namespace Univali.Api.Controllers;
 
 [ApiController]
 [Route("api/authors")]
-[Authorize]
+[Authorize] //Quando isso é habilitado os métodos precisam de autenticação
 public class AuthorsController : MainController
 {
     private readonly IMediator _mediator;
@@ -22,9 +22,7 @@ public class AuthorsController : MainController
     }
 
     [HttpPost]
-    public async Task<ActionResult<AuthorDto>> CreateAuthor(
-        CreateAuthorCommand createAuthorCommand
-        )
+    public async Task<ActionResult<AuthorDto>> CreateAuthor(CreateAuthorCommand createAuthorCommand)
     {
         var authorToReturn = await _mediator.Send(createAuthorCommand);
 
@@ -37,8 +35,7 @@ public class AuthorsController : MainController
     }
 
     [HttpGet("{authorId}", Name = "GetAuthorById")]
-    public async Task<ActionResult<AuthorDto>> GetAuthorById(
-    int authorId)
+    public async Task<ActionResult<AuthorDto>> GetAuthorById(int authorId)
     {
         var getAuthorByIdQuery = new GetAuthorByIdQuery { AuthorId = authorId };
 
@@ -61,4 +58,13 @@ public class AuthorsController : MainController
         return NoContent(); // Autor excluído com sucesso
     }
 
+    [HttpPut("{authorId}")]
+    public async Task<ActionResult> UpdateAuthor(int authorId, [FromBody] UpdateAuthorCommand updateAuthorCommand)
+    {
+        if (authorId != updateAuthorCommand.AuthorId) BadRequest();
+
+        await _mediator.Send(updateAuthorCommand);
+
+        return NoContent();
+    }
 }
