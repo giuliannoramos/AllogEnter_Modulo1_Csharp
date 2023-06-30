@@ -24,7 +24,7 @@ namespace Univali.Api.Controllers;
 
 [ApiController]
 [Route("api/customers")]
-[Authorize]
+[Authorize] //Quando isso é habilitado os métodos precisam de autenticação
 public class CustomersController : MainController
 {
     // Injeção de Dependência: Os parâmetros 'data' e 'mapper' são fornecidos externamente para o construtor da classe CustomersController.

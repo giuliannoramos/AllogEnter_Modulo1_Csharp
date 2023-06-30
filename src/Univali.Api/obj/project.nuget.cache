@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "xCexQaRQOloE61G1B++4b4z6TCqB/Iiau3v+AGz7ScBlbwkumgYBfkpqDZ6vpKqP71dNFQkk6fe6hhwMuwdlVA==",
+  "dgSpecHash": "8mrG6xLhS8N7YWvBQmkVieNVMt7PEfiWmgCyp7SXbDA2iPmK7fAvxtxumDRoVn/r/3j/PnP8K8RAHIWSvxjF9Q==",
   "success": true,
-  "projectFilePath": "C:\\Users\\giule\\source\\repos\\AllogEnter_Modulo1_Csharp\\src\\Univali.Api\\Univali.Api.csproj",
+  "projectFilePath": "C:\\Users\\giule\\Repos\\AllogEnter_Modulo1_Csharp\\src\\Univali.Api\\Univali.Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\giule\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\giule\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",

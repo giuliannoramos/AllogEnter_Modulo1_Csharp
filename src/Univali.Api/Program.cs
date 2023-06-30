@@ -53,6 +53,10 @@ builder.Services.AddScoped<IPatchCustomerCommandHandler, PatchCustomerCommandHan
 
 builder.Services.AddScoped<IGetAddressesQueryHandler, GetAddressesQueryHandler>();
 
+builder.Services.AddDbContext<PublisherContext>();
+
+builder.Services.AddScoped<IPublisherRepository, PublisherRepository>();
+
 builder.Services.AddAuthentication("Bearer").AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new()
